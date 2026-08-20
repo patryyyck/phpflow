@@ -57,6 +57,15 @@ final class Graph
         return $edges;
     }
 
+    /** @return list<Edge> */
+    public function incomingEdges(string $nodeId): array
+    {
+        return array_values(array_filter(
+            $this->edges(),
+            static fn (Edge $edge): bool => $edge->target() === $nodeId,
+        ));
+    }
+
     public function reparentOutgoingAfter(
         string $sourceId,
         int $afterOrder,

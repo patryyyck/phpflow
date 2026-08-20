@@ -133,6 +133,41 @@ make inspect \
     SUMMARY=1
 ```
 
+## Impact analysis
+
+PHPFlow can also traverse the graph backwards from a database table to the routes that can
+reach it.
+
+```bash
+make impact-table \
+    PROJECT_PATH=/path/to/project \
+    TABLE=record_links
+```
+
+Equivalent direct command:
+
+```bash
+php bin/phpflow impact:table /path/to/project record_links
+```
+
+Example:
+
+```text
+Routes impacting table record_links
+
+POST /catalog/{recordId}/sync
+└── CatalogController::sync
+    └── SyncRecord
+        └── SyncRecordHandler::__invoke
+            └── RecordLinkRepositoryInterface::insert
+                └── RecordLinkRepository::insert
+                    └── INSERT record_links
+```
+
+This first reverse-lookup command matches exact statically detected table names. Reverse
+lookup for external HTTP endpoints and other effect types can build on the same graph
+traversal.
+
 ## Mermaid export
 
 Export the complete graph:
