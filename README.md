@@ -164,9 +164,25 @@ POST /catalog/{recordId}/sync
                     └── INSERT record_links
 ```
 
-This first reverse-lookup command matches exact statically detected table names. Reverse
-lookup for external HTTP endpoints and other effect types can build on the same graph
-traversal.
+Table lookup matches exact statically detected table names.
+
+External HTTP endpoints can be searched by full URL or by fragment:
+
+```bash
+make impact-http \
+    PROJECT_PATH=/path/to/project \
+    HTTP='/v1/resources'
+```
+
+Equivalent direct command:
+
+```bash
+php bin/phpflow impact:http /path/to/project '/v1/resources'
+```
+
+The HTTP lookup is case-insensitive and matches against the complete effect label, including
+the HTTP method and statically recovered URL. Both table and HTTP impact analysis now share
+the same cycle-safe reverse graph traversal.
 
 ## Mermaid export
 

@@ -9,7 +9,7 @@ use PhpFlow\Domain\Graph\Node;
 use PhpFlow\Domain\Graph\NodeType;
 use PhpFlow\Domain\Impact\ImpactPath;
 
-final readonly class FindTableImpact
+final readonly class FindHttpImpact
 {
     public function __construct(
         private FindImpactPaths $pathFinder = new FindImpactPaths(),
@@ -17,22 +17,24 @@ final readonly class FindTableImpact
     }
 
     /** @return list<ImpactPath> */
-    public function find(Graph $graph, string $table): array
+    public function find(Graph $graph, string $query): array
     {
+        $query = trim($query);
+
+        if ($query === '') {
+            return [];
+        }
+
         $targets = array_values(array_filter(
             $graph->nodes(),
             static fn (Node $node): bool =>
-                $node->type() === NodeType::DATABASE
-                && self::databaseTarget($node->label()) === $table,
+                $node->type() === NodeType::HTTP_ENDPOINT
+                && str_contains(
+                    strtolower($node->label()),
+                    strtolower($query),
+                ),
         ));
 
         return $this->pathFinder->fromTargets($graph, $targets);
-    }
-
-    private static function databaseTarget(string $label): string
-    {
-        $parts = preg_split('/\s+/', trim($label), 2);
-
-        return $parts[1] ?? '';
     }
 }

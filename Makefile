@@ -1,4 +1,4 @@
-.PHONY: build up down composer shell scan test inspect impact-table export-mermaid
+.PHONY: build up down composer shell scan test inspect impact-table impact-http export-mermaid
 
 PROJECT_PATH ?= .
 ROUTE ?=
@@ -7,6 +7,7 @@ MERMAID_OUTPUT ?= /tmp/phpflow.mmd
 MAX_DEPTH ?= 10
 SUMMARY ?=
 TABLE ?=
+HTTP ?=
 
 build:
 	docker compose build
@@ -36,6 +37,11 @@ inspect:
 		-v "$(PROJECT_PATH):/workspace:ro" \
 		php php bin/phpflow inspect /workspace "$(ROUTE)" "$(METHOD)" \
 		$(if $(SUMMARY),--summary,)
+
+impact-http:
+	docker compose run --rm \
+		-v "$(PROJECT_PATH):/workspace:ro" \
+		php php bin/phpflow impact:http /workspace "$(HTTP)"
 
 impact-table:
 	docker compose run --rm \
