@@ -102,6 +102,8 @@ final class ProjectIndexer
             foreach ($interface->extends as $parentInterface) {
                 $index->addInterface($name, $this->resolvedName($parentInterface));
             }
+
+            $this->indexMethods($name, $interface->getMethods(), $index);
         }
 
         foreach ($finder->findInstanceOf($ast, Node\Stmt\Trait_::class) as $trait) {

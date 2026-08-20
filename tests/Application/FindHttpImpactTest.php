@@ -69,4 +69,108 @@ final class FindHttpImpactTest extends TestCase
             ),
         );
     }
+    public function testItFindsPartiallyResolvedHttpUrlsByKnownFragment(): void
+    {
+        $graph = new \PhpFlow\Domain\Graph\Graph();
+
+        $graph->addNode(new \PhpFlow\Domain\Graph\Node(
+            'route:test',
+            \PhpFlow\Domain\Graph\NodeType::ROUTE,
+            'POST /directory/search',
+        ));
+        $graph->addNode(new \PhpFlow\Domain\Graph\Node(
+            'service:test',
+            \PhpFlow\Domain\Graph\NodeType::SERVICE,
+            'DirectoryClient::search',
+        ));
+        $graph->addNode(new \PhpFlow\Domain\Graph\Node(
+            'http:test',
+            \PhpFlow\Domain\Graph\NodeType::HTTP_ENDPOINT,
+            'POST {dynamic}/v2/directory/search',
+        ));
+
+        $graph->addEdge(new \PhpFlow\Domain\Graph\Edge(
+            'route:test',
+            'service:test',
+            \PhpFlow\Domain\Graph\EdgeType::CALLS,
+        ));
+        $graph->addEdge(new \PhpFlow\Domain\Graph\Edge(
+            'service:test',
+            'http:test',
+            \PhpFlow\Domain\Graph\EdgeType::CALLS,
+        ));
+
+        $paths = (new FindHttpImpact())->find(
+            $graph,
+            '/v2/directory/search',
+        );
+
+        self::assertCount(1, $paths);
+        self::assertSame(
+            'POST {dynamic}/v2/directory/search',
+            $paths[0]->effect()->label(),
+        );
+    }
+
+
+    public function testItMatchesHttpEndpointAfterResolvingPathContext(): void
+    {
+        $graph = new \PhpFlow\Domain\Graph\Graph();
+
+        $graph->addNode(new \PhpFlow\Domain\Graph\Node(
+            'route:context',
+            \PhpFlow\Domain\Graph\NodeType::ROUTE,
+            'POST /directory',
+        ));
+        $graph->addNode(new \PhpFlow\Domain\Graph\Node(
+            'caller:context',
+            \PhpFlow\Domain\Graph\NodeType::SERVICE,
+            'DirectoryClient::getDirectory',
+        ));
+        $graph->addNode(new \PhpFlow\Domain\Graph\Node(
+            'wrapper:context',
+            \PhpFlow\Domain\Graph\NodeType::SERVICE,
+            'ClientInterface::request',
+        ));
+        $graph->addNode(new \PhpFlow\Domain\Graph\Node(
+            'http:context',
+            \PhpFlow\Domain\Graph\NodeType::HTTP_ENDPOINT,
+            '{param:method} {param:url}',
+        ));
+
+        $graph->addEdge(new \PhpFlow\Domain\Graph\Edge(
+            'route:context',
+            'caller:context',
+            \PhpFlow\Domain\Graph\EdgeType::CALLS,
+        ));
+        $graph->addEdge(new \PhpFlow\Domain\Graph\Edge(
+            'caller:context',
+            'wrapper:context',
+            \PhpFlow\Domain\Graph\EdgeType::CALLS,
+            'calls',
+            10,
+            [
+                'method' => 'POST',
+                'url' => '%directory.base_url%/v2/directory/search',
+            ],
+        ));
+        $graph->addEdge(new \PhpFlow\Domain\Graph\Edge(
+            'wrapper:context',
+            'http:context',
+            \PhpFlow\Domain\Graph\EdgeType::CALLS,
+        ));
+
+        $paths = (new FindHttpImpact())->find(
+            $graph,
+            '/v2/directory/search',
+        );
+
+        self::assertCount(1, $paths);
+        self::assertSame(
+            'POST %directory.base_url%/v2/directory/search',
+            $paths[0]->effect()->label(),
+        );
+    }
+
+
 }

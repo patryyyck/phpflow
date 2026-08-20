@@ -180,6 +180,8 @@ Equivalent direct command:
 php bin/phpflow impact:http /path/to/project '/v1/resources'
 ```
 
+HTTP URL reconstruction is performed directly from the AST when full string resolution is not possible. Partially dynamic URLs preserve their known static fragments using `{dynamic}` placeholders, for example `POST {dynamic}/v2/directory/search`. This keeps `impact:http` useful even when a base URL or path parameter cannot be fully resolved.
+
 The HTTP lookup is case-insensitive and matches against the complete effect label, including
 the HTTP method and statically recovered URL. Both table and HTTP impact analysis now share
 the same cycle-safe reverse graph traversal.
@@ -265,3 +267,56 @@ badge URL with the actual GitHub account name.
 ## License
 
 PHPFlow is open source software licensed under the [MIT License](LICENSE).
+
+
+### Contextual HTTP wrapper resolution
+
+When an application service forwards an HTTP method and URL through a wrapper such as
+`ClientInterface::request($method, $url, ...)`, PHPFlow carries statically recoverable
+arguments along the inspected call path. An implementation-level call using `$method` and
+`$url` can therefore render the caller-specific endpoint instead of `HTTP <dynamic URL>`.
+
+Service implementation resolution prefers explicit Symfony aliases and production
+implementations. Test-only implementations are not selected as fallback implementations.
+
+
+### Symfony environment-specific service aliases
+
+By default, PHPFlow reads the base `config/services.php` configuration and ignores
+environment-specific overrides such as `services_test.php`. This prevents test mocks from
+silently replacing production implementations during a normal inspection.
+
+The alias reader can still be asked explicitly for an environment when needed; in that case,
+for example, `services_test.php` is applied after the base configuration.
+
+
+Class string constants such as `self::TOKEN_ENDPOINT` are resolved when their value is a
+static string. This allows URLs like `%auth.base_url%/oauth/token` to remain fully visible
+instead of degrading to `{dynamic}`.
+
+
+### Union-typed Messenger handlers
+
+A Messenger handler whose first argument is a named union type, for example
+`FirstCommand|SecondCommand $command`, is registered for every named member of the union.
+This allows each dispatched message to continue through the same handler in the flow graph.
+
+
+### Same-class method calls
+
+PHPFlow follows calls from one method to another method of the same class, including private
+helpers. This is important for infrastructure clients where a public method delegates to a
+private pagination/fetch method that performs the actual HTTP or database effect.
+
+
+### Static `sprintf()` URL construction
+
+PHPFlow resolves simple `sprintf()` calls when the format string is static. Known arguments
+are substituted and unresolved arguments become `{dynamic}` placeholders. This allows
+patterns such as `sprintf('%s/v2/directory/search', $this->baseUrl)` to remain visible in
+HTTP effects and impact analysis.
+
+
+HTTP impact lookup resolves path-specific call context before matching. This means a raw
+graph node such as `{param:method} {param:url}` can still be found by `impact:http` when an
+upstream call supplies a concrete method and URL for that route.

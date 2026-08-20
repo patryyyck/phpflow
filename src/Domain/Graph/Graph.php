@@ -92,6 +92,7 @@ final class Graph
                 $edge->type(),
                 $edge->label(),
                 $edge->order(),
+                $edge->context(),
             ));
         }
     }
@@ -135,6 +136,7 @@ final class Graph
                 $edge->type(),
                 $edge->label(),
                 $edge->order(),
+                $edge->context(),
             ));
         }
 

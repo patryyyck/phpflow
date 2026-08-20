@@ -17,8 +17,8 @@ final class DirectoryScannerTest extends TestCase
 
         $project = $scanner->scan(__DIR__.'/../../Fixtures/SimpleProject');
 
-        self::assertSame(58, $project->sourceFileCount());
-        self::assertCount(58, $project->sourceFiles());
+        self::assertSame(66, $project->sourceFileCount());
+        self::assertCount(66, $project->sourceFiles());
         self::assertDirectoryExists($project->path());
     }
 

@@ -25,4 +25,30 @@ final class SymfonyServiceAliasReaderTest extends TestCase
             $aliases['App\\ServiceCycle\\CyclicServiceA'] ?? null,
         );
     }
+    public function testItIgnoresEnvironmentSpecificAliasesByDefault(): void
+    {
+        $aliases = (new SymfonyServiceAliasReader())->read(
+            __DIR__.'/../../Fixtures/SimpleProject',
+        );
+
+        self::assertSame(
+            'App\\ServiceCycle\\CyclicServiceB',
+            $aliases['App\\ServiceCycle\\CyclicServiceA'] ?? null,
+        );
+    }
+
+    public function testExplicitEnvironmentOverridesBaseAliases(): void
+    {
+        $aliases = (new SymfonyServiceAliasReader())->read(
+            __DIR__.'/../../Fixtures/SimpleProject',
+            'test',
+        );
+
+        self::assertSame(
+            'App\\Tests\\MockCyclicService',
+            $aliases['App\\ServiceCycle\\CyclicServiceA'] ?? null,
+        );
+    }
+
+
 }

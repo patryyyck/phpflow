@@ -112,6 +112,9 @@ final class ProjectAstAnalyzer
 
             private ?string $className = null;
             private ?string $methodName = null;
+
+            /** @var array<string, true> */
+            private array $currentMethodParameters = [];
             private ?MethodContext $methodContext = null;
             private bool $currentClassIsMessageHandler = false;
 
@@ -178,6 +181,13 @@ final class ProjectAstAnalyzer
 
                     $this->methodName = $node->name->toString();
                     $this->methodContext = new MethodContext();
+                    $this->currentMethodParameters = [];
+
+                    foreach ($node->params as $parameter) {
+                        if (is_string($parameter->var->name)) {
+                            $this->currentMethodParameters[$parameter->var->name] = true;
+                        }
+                    }
 
                     if ($this->methodName === '__construct') {
                         $this->collectPromotedServices($node);
@@ -196,9 +206,11 @@ final class ProjectAstAnalyzer
                         ($this->currentClassIsMessageHandler && $methodName === '__invoke')
                         || $methodIsMessageHandler
                     ) {
-                        $message = $this->messageTypeFromHandlerMethod($node);
+                        foreach ($this->messageTypesFromHandlerMethod($node) as $message) {
+                            if ($this->className === null) {
+                                continue;
+                            }
 
-                        if ($message !== null && $this->className !== null) {
                             $this->messageHandlers[] = new MessageHandler(
                                 $message,
                                 $this->className.'::'.$methodName,
@@ -239,6 +251,7 @@ final class ProjectAstAnalyzer
                     $this->collectApplicationEffect($node);
                     $this->collectHttpCall($node);
                     $this->collectServiceCall($node);
+                    $this->collectLocalMethodCall($node);
                 }
 
                 if ($node instanceof Node\Expr\MethodCall && !$this->isDispatchCall($node)) {
@@ -323,6 +336,7 @@ final class ProjectAstAnalyzer
                     $this->collectUnreachableRanges($node->stmts ?? []);
                     $this->methodName = null;
                     $this->methodContext = null;
+                    $this->currentMethodParameters = [];
                 }
 
                 if ($node instanceof Node\Stmt\ClassLike) {
@@ -1601,6 +1615,54 @@ final class ProjectAstAnalyzer
                 );
             }
 
+            private function collectLocalMethodCall(Node\Expr\MethodCall $call): void
+            {
+                if (
+                    $this->className === null
+                    || !$call->var instanceof Node\Expr\Variable
+                    || $call->var->name !== 'this'
+                    || !$call->name instanceof Node\Identifier
+                ) {
+                    return;
+                }
+
+                $method = $call->name->toString();
+                $definition = $this->projectIndex->resolveMethod(
+                    $this->className,
+                    $method,
+                );
+
+                if ($definition === null) {
+                    return;
+                }
+
+                $arguments = [];
+
+                foreach ($definition->parameters() as $index => $parameter) {
+                    if ($parameter === '' || !isset($call->args[$index])) {
+                        continue;
+                    }
+
+                    $value = $this->httpCallArgumentValue(
+                        $call->args[$index]->value,
+                        $parameter === 'url',
+                    );
+
+                    if ($value !== null) {
+                        $arguments[$parameter] = $value;
+                    }
+                }
+
+                $this->serviceCalls[] = new ServiceCall(
+                    $this->source(),
+                    $this->className,
+                    $method,
+                    $this->className,
+                    $this->sourcePosition($call),
+                    $arguments,
+                );
+            }
+
             private function collectServiceCall(Node\Expr\MethodCall $call): void
             {
                 if (
@@ -1637,12 +1699,36 @@ final class ProjectAstAnalyzer
                     $implementation = $service;
                 }
 
+                $arguments = [];
+                $definition = $this->projectIndex->resolveMethod(
+                    $service,
+                    $call->name->toString(),
+                );
+
+                if ($definition !== null) {
+                    foreach ($definition->parameters() as $index => $parameter) {
+                        if ($parameter === '' || !isset($call->args[$index])) {
+                            continue;
+                        }
+
+                        $value = $this->httpCallArgumentValue(
+                            $call->args[$index]->value,
+                            $parameter === 'url',
+                        );
+
+                        if ($value !== null) {
+                            $arguments[$parameter] = $value;
+                        }
+                    }
+                }
+
                 $this->serviceCalls[] = new ServiceCall(
                     $this->source(),
                     $service,
                     $call->name->toString(),
                     $implementation,
                     $this->sourcePosition($call),
+                    $arguments,
                 );
             }
 
@@ -2161,11 +2247,11 @@ final class ProjectAstAnalyzer
                 }
 
                 $method = isset($call->args[0])
-                    ? $this->stringValue($call->args[0]->value)
+                    ? $this->httpCallArgumentValue($call->args[0]->value)
                     : null;
 
                 $url = isset($call->args[1])
-                    ? $this->stringValue($call->args[1]->value)
+                    ? $this->httpCallArgumentValue($call->args[1]->value, true)
                     : null;
 
                 $this->httpCalls[] = new HttpCall(
@@ -2175,6 +2261,121 @@ final class ProjectAstAnalyzer
                     $url,
                     $this->sourcePosition($call),
                 );
+            }
+
+            private function httpCallArgumentValue(
+                Node\Expr $expression,
+                bool $url = false,
+            ): ?string {
+                if (
+                    $expression instanceof Node\Expr\Variable
+                    && is_string($expression->name)
+                    && isset($this->currentMethodParameters[$expression->name])
+                ) {
+                    return '{param:'.$expression->name.'}';
+                }
+
+                return $url
+                    ? $this->httpUrlValue($expression)
+                    : $this->stringValue($expression);
+            }
+
+            private function httpUrlValue(Node\Expr $expression): ?string
+            {
+                $resolved = $this->stringValue($expression);
+
+                if ($resolved !== null) {
+                    return $resolved;
+                }
+
+                $pattern = $this->httpUrlPattern($expression);
+
+                return $pattern === '{dynamic}' ? null : $pattern;
+            }
+
+            private function httpUrlPattern(Node\Expr $expression): string
+            {
+                if ($expression instanceof Node\Scalar\String_) {
+                    return $expression->value;
+                }
+
+                if ($expression instanceof Node\Expr\BinaryOp\Concat) {
+                    return $this->httpUrlPattern($expression->left)
+                        .$this->httpUrlPattern($expression->right);
+                }
+
+                if ($expression instanceof Node\Scalar\InterpolatedString) {
+                    $parts = [];
+
+                    foreach ($expression->parts as $part) {
+                        if ($part instanceof Node\InterpolatedStringPart) {
+                            $parts[] = $part->value;
+                        } elseif ($part instanceof Node\Expr) {
+                            $parts[] = $this->httpUrlPattern($part);
+                        }
+                    }
+
+                    return implode('', $parts);
+                }
+
+                $classConstant = $this->classStringConstantValue($expression);
+
+                if ($classConstant !== null) {
+                    return $classConstant;
+                }
+
+                if (
+                    $expression instanceof Node\Expr\PropertyFetch
+                    && $expression->var instanceof Node\Expr\Variable
+                    && $expression->var->name === 'this'
+                    && $expression->name instanceof Node\Identifier
+                ) {
+                    $parameter = $this->injectedParameters[$expression->name->toString()] ?? null;
+
+                    return $parameter === null
+                        ? '{dynamic}'
+                        : '%'.$parameter.'%';
+                }
+
+                if (
+                    $expression instanceof Node\Expr\Variable
+                    && is_string($expression->name)
+                    && $this->methodContext !== null
+                ) {
+                    return $this->methodContext->resolveString($expression->name)
+                        ?? '{dynamic}';
+                }
+
+                return '{dynamic}';
+            }
+
+            private function classStringConstantValue(Node\Expr $expression): ?string
+            {
+                if (
+                    !$expression instanceof Node\Expr\ClassConstFetch
+                    || !$expression->class instanceof Node\Name
+                    || !$expression->name instanceof Node\Identifier
+                ) {
+                    return null;
+                }
+
+                $class = ltrim($expression->class->toString(), '\\');
+                $normalized = strtolower($class);
+
+                $isCurrentClass = $normalized === 'self'
+                    || $normalized === 'static'
+                    || (
+                        $this->className !== null
+                        && $class === ltrim($this->className, '\\')
+                    );
+
+                if (!$isCurrentClass) {
+                    return null;
+                }
+
+                return $this->classStringConstants[
+                    $expression->name->toString()
+                ] ?? null;
             }
 
             private function looksLikeHttpClient(string $class): bool
@@ -2194,10 +2395,17 @@ final class ProjectAstAnalyzer
                 }
 
                 if ($expression instanceof Node\Expr\BinaryOp\Concat) {
-                    $left = $this->stringValue($expression->left);
-                    $right = $this->stringValue($expression->right);
+                    return $this->partialStringValue($expression);
+                }
 
-                    return $left !== null && $right !== null ? $left.$right : null;
+                if ($expression instanceof Node\Scalar\InterpolatedString) {
+                    return $this->partialInterpolatedString($expression);
+                }
+
+                $classConstant = $this->classStringConstantValue($expression);
+
+                if ($classConstant !== null) {
+                    return $classConstant;
                 }
 
                 if (
@@ -2211,6 +2419,22 @@ final class ProjectAstAnalyzer
                     return $parameter === null ? null : '%'.$parameter.'%';
                 }
 
+                if ($expression instanceof Node\Expr\FuncCall) {
+                    $sprintf = $this->sprintfValue($expression);
+
+                    if ($sprintf !== null) {
+                        return $sprintf;
+                    }
+                }
+
+                if (
+                    $expression instanceof Node\Expr\Variable
+                    && is_string($expression->name)
+                    && $this->methodContext !== null
+                ) {
+                    return $this->methodContext->resolveString($expression->name);
+                }
+
                 if (
                     $expression instanceof Node\Expr\MethodCall
                     && $expression->var instanceof Node\Expr\Variable
@@ -2222,6 +2446,73 @@ final class ProjectAstAnalyzer
                 }
 
                 return null;
+            }
+
+            private function partialStringValue(Node\Expr $expression): string
+            {
+                if ($expression instanceof Node\Expr\BinaryOp\Concat) {
+                    return $this->partialStringValue($expression->left)
+                        .$this->partialStringValue($expression->right);
+                }
+
+                return $this->stringValue($expression) ?? '{dynamic}';
+            }
+
+            private function partialInterpolatedString(Node\Scalar\InterpolatedString $expression): string
+            {
+                $parts = [];
+
+                foreach ($expression->parts as $part) {
+                    if ($part instanceof Node\InterpolatedStringPart) {
+                        $parts[] = $part->value;
+                        continue;
+                    }
+
+                    if ($part instanceof Node\Expr) {
+                        $parts[] = $this->stringValue($part) ?? '{dynamic}';
+                    }
+                }
+
+                return implode('', $parts);
+            }
+
+            private function sprintfValue(Node\Expr\FuncCall $call): ?string
+            {
+                if (
+                    !$call->name instanceof Node\Name
+                    || strtolower(ltrim($call->name->toString(), '\\')) !== 'sprintf'
+                    || !isset($call->args[0])
+                ) {
+                    return null;
+                }
+
+                $format = $this->stringValue($call->args[0]->value);
+
+                if ($format === null) {
+                    return null;
+                }
+
+                $arguments = [];
+
+                foreach (array_slice($call->args, 1) as $argument) {
+                    $arguments[] = $this->stringValue($argument->value)
+                        ?? '{dynamic}';
+                }
+
+                $index = 0;
+
+                $resolved = preg_replace_callback(
+                    '/%(?:\d+\$)?s/',
+                    static function (array $match) use (&$arguments, &$index): string {
+                        $value = $arguments[$index] ?? '{dynamic}';
+                        ++$index;
+
+                        return $value;
+                    },
+                    $format,
+                );
+
+                return $resolved ?? $format;
             }
 
             private function looksLikeRepository(string $class): bool
@@ -2251,15 +2542,32 @@ final class ProjectAstAnalyzer
                 return false;
             }
 
-            private function messageTypeFromHandlerMethod(Node\Stmt\ClassMethod $method): ?string
+            /** @return list<string> */
+            private function messageTypesFromHandlerMethod(Node\Stmt\ClassMethod $method): array
             {
                 $parameter = $method->params[0] ?? null;
 
-                if ($parameter === null || !$parameter->type instanceof Node\Name) {
-                    return null;
+                if ($parameter === null || $parameter->type === null) {
+                    return [];
                 }
 
-                return $parameter->type->toString();
+                if ($parameter->type instanceof Node\Name) {
+                    return [$parameter->type->toString()];
+                }
+
+                if ($parameter->type instanceof Node\UnionType) {
+                    $types = [];
+
+                    foreach ($parameter->type->types as $type) {
+                        if ($type instanceof Node\Name) {
+                            $types[] = $type->toString();
+                        }
+                    }
+
+                    return $types;
+                }
+
+                return [];
             }
 
             /**

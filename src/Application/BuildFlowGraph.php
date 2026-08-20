@@ -469,6 +469,7 @@ final class BuildFlowGraph
                 EdgeType::CALLS,
                 'calls',
                 $call->position()?->filePosition(),
+                $call->arguments(),
             ));
 
             if ($call->implementation() !== null && $call->implementation() !== $call->service()) {

@@ -22,9 +22,16 @@ final class SymfonyServiceAliasReader
     }
 
     /**
+     * Reads Symfony service aliases for the base configuration and, optionally,
+     * one explicit environment override.
+     *
+     * With no environment, environment-specific files such as services_test.php
+     * are deliberately ignored. This mirrors a production/default inspection and
+     * prevents test mocks from overriding application services.
+     *
      * @return array<string, string>
      */
-    public function read(string $projectPath): array
+    public function read(string $projectPath, ?string $environment = null): array
     {
         $configDirectory = $projectPath.'/config';
 
@@ -32,18 +39,40 @@ final class SymfonyServiceAliasReader
             return [];
         }
 
+        $files = [];
+
+        $base = $configDirectory.'/services.php';
+
+        if (is_file($base)) {
+            $files[] = $base;
+        }
+
         $finder = (new Finder())
             ->files()
             ->in($configDirectory)
-            ->name('services.php')
-            ->name('services_*.php')
             ->name('*.services.php')
             ->sortByName();
 
+        foreach ($finder as $file) {
+            $files[] = $file->getRealPath();
+        }
+
+        if ($environment !== null && $environment !== '') {
+            $environmentFile = sprintf(
+                '%s/services_%s.php',
+                $configDirectory,
+                $environment,
+            );
+
+            if (is_file($environmentFile)) {
+                $files[] = $environmentFile;
+            }
+        }
+
         $aliases = [];
 
-        foreach ($finder as $file) {
-            foreach ($this->readFile($file->getRealPath()) as $service => $target) {
+        foreach ($files as $file) {
+            foreach ($this->readFile($file) as $service => $target) {
                 $aliases[$service] = $target;
             }
         }

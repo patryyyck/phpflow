@@ -81,9 +81,17 @@ final readonly class AnalyzeProject
         $serviceCalls = [];
 
         foreach ($ast->serviceCalls() as $call) {
-            $implementation = $aliases[$call->service()]
-                ?? $call->implementation()
-                ?? $index->uniqueImplementationOf($call->service());
+            $implementation = $aliases[$call->service()] ?? null;
+
+            if ($implementation === null) {
+                $candidate = $call->implementation();
+
+                if ($candidate !== null && !$index->isTestSymbol($candidate)) {
+                    $implementation = $candidate;
+                }
+            }
+
+            $implementation ??= $index->uniqueImplementationOf($call->service());
 
             if (
                 $implementation === null
@@ -99,6 +107,7 @@ final readonly class AnalyzeProject
                 $call->method(),
                 $implementation,
                 $call->position(),
+                $call->arguments(),
             );
         }
 
