@@ -4,4 +4,3 @@
 .phpunit.cache/
 .phpunit.result.cache
 composer.phar
-.env
