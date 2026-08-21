@@ -91,4 +91,19 @@ final class DoctrineCompanyRepository implements CompanyRepository
             'UPDATE company SET status = :status WHERE id = :id',
         );
     }
+    public function findFromQuotedSchema(): array
+    {
+        return $this->connection->fetchAssociative(
+            'SELECT id FROM "public"."companies" WHERE id = :id',
+        );
+    }
+
+    public function updateQuotedSchema(): void
+    {
+        $this->connection->executeStatement(
+            'UPDATE "public"."companies" SET status = :status WHERE id = :id',
+        );
+    }
+
+
 }

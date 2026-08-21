@@ -164,7 +164,26 @@ POST /catalog/{recordId}/sync
                     └── INSERT record_links
 ```
 
-Table lookup matches exact statically detected table names.
+Table lookup accepts both bare and schema-qualified names. For example, `TABLE=companies`
+matches effects on `companies`, `public.companies`, or quoted SQL identifiers such as
+`"public"."companies"`.
+
+You can restrict the result to one SQL operation:
+
+```bash
+make impact-table \
+    PROJECT_PATH=/path/to/project \
+    TABLE=companies \
+    OPERATION=SELECT
+```
+
+Equivalent direct command:
+
+```bash
+php bin/phpflow impact:table /path/to/project companies --operation=SELECT
+```
+
+Supported filters are `SELECT`, `INSERT`, `UPDATE`, and `DELETE`.
 
 External HTTP endpoints can be searched by full URL or by fragment:
 

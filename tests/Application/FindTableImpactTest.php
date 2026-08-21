@@ -56,4 +56,93 @@ final class FindTableImpactTest extends TestCase
 
         self::assertSame([], $paths);
     }
+    public function testItMatchesSchemaQualifiedTablesByBaseName(): void
+    {
+        $graph = new \PhpFlow\Domain\Graph\Graph();
+
+        $graph->addNode(new \PhpFlow\Domain\Graph\Node(
+            'route:companies',
+            \PhpFlow\Domain\Graph\NodeType::ROUTE,
+            'GET /companies',
+        ));
+        $graph->addNode(new \PhpFlow\Domain\Graph\Node(
+            'database:companies',
+            \PhpFlow\Domain\Graph\NodeType::DATABASE,
+            'SELECT public.companies',
+        ));
+        $graph->addEdge(new \PhpFlow\Domain\Graph\Edge(
+            'route:companies',
+            'database:companies',
+            \PhpFlow\Domain\Graph\EdgeType::CALLS,
+        ));
+
+        $paths = (new FindTableImpact())->find($graph, 'companies');
+
+        self::assertCount(1, $paths);
+        self::assertSame('SELECT public.companies', $paths[0]->effect()->label());
+
+        self::assertCount(
+            1,
+            (new FindTableImpact())->find($graph, '"public"."companies"'),
+        );
+    }
+
+    public function testItCanFilterTableImpactBySqlOperation(): void
+    {
+        $graph = new \PhpFlow\Domain\Graph\Graph();
+
+        $graph->addNode(new \PhpFlow\Domain\Graph\Node(
+            'route:read',
+            \PhpFlow\Domain\Graph\NodeType::ROUTE,
+            'GET /companies',
+        ));
+        $graph->addNode(new \PhpFlow\Domain\Graph\Node(
+            'route:write',
+            \PhpFlow\Domain\Graph\NodeType::ROUTE,
+            'PUT /companies/{id}',
+        ));
+        $graph->addNode(new \PhpFlow\Domain\Graph\Node(
+            'database:select',
+            \PhpFlow\Domain\Graph\NodeType::DATABASE,
+            'SELECT companies',
+        ));
+        $graph->addNode(new \PhpFlow\Domain\Graph\Node(
+            'database:update',
+            \PhpFlow\Domain\Graph\NodeType::DATABASE,
+            'UPDATE companies',
+        ));
+
+        $graph->addEdge(new \PhpFlow\Domain\Graph\Edge(
+            'route:read',
+            'database:select',
+            \PhpFlow\Domain\Graph\EdgeType::CALLS,
+        ));
+        $graph->addEdge(new \PhpFlow\Domain\Graph\Edge(
+            'route:write',
+            'database:update',
+            \PhpFlow\Domain\Graph\EdgeType::CALLS,
+        ));
+
+        $selectPaths = (new FindTableImpact())->find(
+            $graph,
+            'companies',
+            'select',
+        );
+
+        self::assertCount(1, $selectPaths);
+        self::assertSame('GET /companies', $selectPaths[0]->root()->label());
+        self::assertSame('SELECT companies', $selectPaths[0]->effect()->label());
+
+        $updatePaths = (new FindTableImpact())->find(
+            $graph,
+            'companies',
+            'UPDATE',
+        );
+
+        self::assertCount(1, $updatePaths);
+        self::assertSame('PUT /companies/{id}', $updatePaths[0]->root()->label());
+        self::assertSame('UPDATE companies', $updatePaths[0]->effect()->label());
+    }
+
+
 }

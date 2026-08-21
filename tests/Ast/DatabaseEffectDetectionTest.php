@@ -90,4 +90,35 @@ final class DatabaseEffectDetectionTest extends TestCase
     }
 
 
+    public function testItExtractsSchemaQualifiedQuotedTableNames(): void
+    {
+        $project = (new DirectoryScanner())->scan(__DIR__.'/../Fixtures/SimpleProject');
+        $analysis = (new ProjectAstAnalyzer())->analyze($project);
+
+        $effects = array_values(array_filter(
+            $analysis->databaseEffects(),
+            static fn ($effect): bool =>
+                in_array(
+                    $effect->source(),
+                    [
+                        'App\\Repository\\DoctrineCompanyRepository::findFromQuotedSchema',
+                        'App\\Repository\\DoctrineCompanyRepository::updateQuotedSchema',
+                    ],
+                    true,
+                ),
+        ));
+
+        self::assertCount(2, $effects);
+
+        $byOperation = [];
+
+        foreach ($effects as $effect) {
+            $byOperation[$effect->operation()] = $effect->target();
+        }
+
+        self::assertSame('public.companies', $byOperation['SELECT'] ?? null);
+        self::assertSame('public.companies', $byOperation['UPDATE'] ?? null);
+    }
+
+
 }

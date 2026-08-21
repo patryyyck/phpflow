@@ -2051,24 +2051,36 @@ final class ProjectAstAnalyzer
             private function sqlOperationAndTarget(string $sql): array
             {
                 $trimmed = ltrim($sql);
+                $identifier = '(?:`[^`]+`|"[^"]+"|\[[^\]]+\]|[A-Za-z_][A-Za-z0-9_]*)(?:\s*\.\s*(?:`[^`]+`|"[^"]+"|\[[^\]]+\]|[A-Za-z_][A-Za-z0-9_]*))*';
 
-                if (preg_match('/^INSERT\s+INTO\s+([`"\[\]A-Za-z0-9_.]+)/i', $trimmed, $matches)) {
-                    return ['INSERT', trim($matches[1], '`"[]')];
+                if (preg_match('/^INSERT\s+INTO\s+('.$identifier.')/i', $trimmed, $matches)) {
+                    return ['INSERT', $this->normalizeSqlIdentifier($matches[1])];
                 }
 
-                if (preg_match('/^UPDATE\s+([`"\[\]A-Za-z0-9_.]+)/i', $trimmed, $matches)) {
-                    return ['UPDATE', trim($matches[1], '`"[]')];
+                if (preg_match('/^UPDATE\s+('.$identifier.')/i', $trimmed, $matches)) {
+                    return ['UPDATE', $this->normalizeSqlIdentifier($matches[1])];
                 }
 
-                if (preg_match('/^DELETE\s+FROM\s+([`"\[\]A-Za-z0-9_.]+)/i', $trimmed, $matches)) {
-                    return ['DELETE', trim($matches[1], '`"[]')];
+                if (preg_match('/^DELETE\s+FROM\s+('.$identifier.')/i', $trimmed, $matches)) {
+                    return ['DELETE', $this->normalizeSqlIdentifier($matches[1])];
                 }
 
-                if (preg_match('/^SELECT\b.*?\bFROM\s+([`"\[\]A-Za-z0-9_.]+)/is', $trimmed, $matches)) {
-                    return ['SELECT', trim($matches[1], '`"[]')];
+                if (preg_match('/^SELECT\b.*?\bFROM\s+('.$identifier.')/is', $trimmed, $matches)) {
+                    return ['SELECT', $this->normalizeSqlIdentifier($matches[1])];
                 }
 
                 return ['SQL', null];
+            }
+
+            private function normalizeSqlIdentifier(string $identifier): string
+            {
+                $parts = preg_split('/\s*\.\s*/', trim($identifier)) ?: [];
+
+                return implode('.', array_map(
+                    static fn (string $part): string =>
+                        trim(trim($part), "`\"[]"),
+                    $parts,
+                ));
             }
 
             private function classNameValue(Node\Expr $expression): ?string

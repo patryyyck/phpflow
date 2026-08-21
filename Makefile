@@ -7,6 +7,7 @@ MERMAID_OUTPUT ?= /tmp/phpflow.mmd
 MAX_DEPTH ?= 10
 SUMMARY ?=
 TABLE ?=
+OPERATION ?=
 HTTP ?=
 
 build:
@@ -46,7 +47,7 @@ impact-http:
 impact-table:
 	docker compose run --rm \
 		-v "$(PROJECT_PATH):/workspace:ro" \
-		php php bin/phpflow impact:table /workspace "$(TABLE)"
+		php php bin/phpflow impact:table /workspace "$(TABLE)" 		$(if $(OPERATION),--operation="$(OPERATION)",)
 
 export-mermaid:
 	@if [ -n "$(ROUTE)" ]; then \
