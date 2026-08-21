@@ -191,6 +191,27 @@ dispatched from another modelled route or process. This lets `impact:table` and 
 report worker/consumer flows in addition to HTTP routes without duplicating messages that
 already belong to a route-driven path.
 
+Messenger messages can also be searched in reverse to find which entry points can dispatch
+them, including recursive message-to-message flows:
+
+```bash
+make impact-message \
+    PROJECT_PATH=/path/to/project \
+    MESSAGE='App\\Message\\SyncCompany'
+```
+
+A short class name is accepted when convenient:
+
+```bash
+make impact-message PROJECT_PATH=/path/to/project MESSAGE=SyncCompany
+```
+
+Equivalent direct command:
+
+```bash
+php bin/phpflow impact:message /path/to/project 'App\\Message\\SyncCompany'
+```
+
 External HTTP endpoints can be searched by full URL or by fragment:
 
 ```bash
@@ -278,6 +299,7 @@ Useful commands:
 make scan PROJECT_PATH=/path/to/project
 make inspect PROJECT_PATH=/path/to/project ROUTE=/route METHOD=GET
 make inspect PROJECT_PATH=/path/to/project ROUTE=/route METHOD=GET SUMMARY=1
+make impact-message PROJECT_PATH=/path/to/project MESSAGE=SyncCompany
 make export-mermaid PROJECT_PATH=/path/to/project
 ```
 

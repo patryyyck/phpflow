@@ -8,6 +8,7 @@ use PhpFlow\Application\BuildFlowGraph;
 use PhpFlow\Application\ExtractSubgraph;
 use PhpFlow\Application\FindTableImpact;
 use PhpFlow\Application\FindHttpImpact;
+use PhpFlow\Application\FindMessageImpact;
 use PhpFlow\Application\ScanProject;
 use PhpFlow\Application\TraverseFlowGraph;
 use PhpFlow\Application\AnalyzeProject;
@@ -15,6 +16,7 @@ use PhpFlow\Console\Command\ExportMermaidCommand;
 use PhpFlow\Console\Command\InspectCommand;
 use PhpFlow\Console\Command\ImpactTableCommand;
 use PhpFlow\Console\Command\ImpactHttpCommand;
+use PhpFlow\Console\Command\ImpactMessageCommand;
 use PhpFlow\Console\Command\ScanCommand;
 use PhpFlow\Console\ImpactPathRenderer;
 use PhpFlow\Exporter\MermaidExporter;
@@ -50,6 +52,14 @@ final class Application
             new AnalyzeProject(new \PhpFlow\Ast\ProjectAstAnalyzer(), new MessengerRoutingReader()),
             new BuildFlowGraph(),
             new FindHttpImpact(),
+            new ImpactPathRenderer(),
+        ));
+
+        $this->application->add(new ImpactMessageCommand(
+            new ScanProject(new DirectoryScanner()),
+            new AnalyzeProject(new \PhpFlow\Ast\ProjectAstAnalyzer(), new MessengerRoutingReader()),
+            new BuildFlowGraph(),
+            new FindMessageImpact(),
             new ImpactPathRenderer(),
         ));
 
