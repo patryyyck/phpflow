@@ -173,4 +173,52 @@ final class FindHttpImpactTest extends TestCase
     }
 
 
+    public function testItFindsStandaloneMessengerProcessesThatCallHttp(): void
+    {
+        $graph = new \PhpFlow\Domain\Graph\Graph();
+
+        $graph->addNode(new \PhpFlow\Domain\Graph\Node(
+            'message:http-import',
+            \PhpFlow\Domain\Graph\NodeType::MESSAGE,
+            'App\\Message\\PushDirectory',
+        ));
+        $graph->addNode(new \PhpFlow\Domain\Graph\Node(
+            'handler:http-import',
+            \PhpFlow\Domain\Graph\NodeType::HANDLER,
+            'App\\MessageHandler\\PushDirectoryHandler::__invoke',
+        ));
+        $graph->addNode(new \PhpFlow\Domain\Graph\Node(
+            'http:push',
+            \PhpFlow\Domain\Graph\NodeType::HTTP_ENDPOINT,
+            'POST %directory.base_url%/v2/push',
+        ));
+
+        $graph->addEdge(new \PhpFlow\Domain\Graph\Edge(
+            'message:http-import',
+            'handler:http-import',
+            \PhpFlow\Domain\Graph\EdgeType::HANDLED_BY,
+        ));
+        $graph->addEdge(new \PhpFlow\Domain\Graph\Edge(
+            'handler:http-import',
+            'http:push',
+            \PhpFlow\Domain\Graph\EdgeType::CALLS,
+        ));
+
+        $paths = (new FindHttpImpact())->find(
+            $graph,
+            '/v2/push',
+        );
+
+        self::assertCount(1, $paths);
+        self::assertSame(
+            'App\\Message\\PushDirectory',
+            $paths[0]->root()->label(),
+        );
+        self::assertSame(
+            'POST %directory.base_url%/v2/push',
+            $paths[0]->effect()->label(),
+        );
+    }
+
+
 }

@@ -19,7 +19,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'impact:table',
-    description: 'Finds routes that can reach a database table.',
+    description: 'Finds entry points that can reach a database table.',
 )]
 final class ImpactTableCommand extends Command
 {
@@ -72,13 +72,13 @@ final class ImpactTableCommand extends Command
 
         $io = new SymfonyStyle($input, $output);
         $io->title(sprintf(
-            'Routes impacting table %s%s',
+            'Entry points impacting table %s%s',
             $table,
             $operation === null ? '' : ' via '.$operation,
         ));
 
         if ($impacts === []) {
-            $output->writeln('No route found.');
+            $output->writeln('No entry point found.');
 
             return Command::SUCCESS;
         }

@@ -18,7 +18,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'impact:http',
-    description: 'Finds routes that can reach an external HTTP endpoint.',
+    description: 'Finds entry points that can reach an external HTTP endpoint.',
 )]
 final class ImpactHttpCommand extends Command
 {
@@ -54,10 +54,10 @@ final class ImpactHttpCommand extends Command
         $impacts = $this->impactFinder->find($graph, $query);
 
         $io = new SymfonyStyle($input, $output);
-        $io->title(sprintf('Routes impacting HTTP endpoint %s', $query));
+        $io->title(sprintf('Entry points impacting HTTP endpoint %s', $query));
 
         if ($impacts === []) {
-            $output->writeln('No route found.');
+            $output->writeln('No entry point found.');
 
             return Command::SUCCESS;
         }

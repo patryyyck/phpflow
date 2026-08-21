@@ -6,11 +6,15 @@ namespace PhpFlow\Application;
 
 use PhpFlow\Domain\Graph\Graph;
 use PhpFlow\Domain\Graph\Node;
-use PhpFlow\Domain\Graph\NodeType;
 use PhpFlow\Domain\Impact\ImpactPath;
 
 final readonly class FindImpactPaths
 {
+    public function __construct(
+        private ImpactEntryPoints $entryPoints = new ImpactEntryPoints(),
+    ) {
+    }
+
     /**
      * @param list<Node> $targets
      * @return list<ImpactPath>
@@ -56,7 +60,7 @@ final readonly class FindImpactPaths
         Node $node,
         array $visited,
     ): array {
-        if ($node->type() === NodeType::ROUTE) {
+        if ($this->entryPoints->isEntryPoint($graph, $node)) {
             return [[$node]];
         }
 

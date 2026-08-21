@@ -11,6 +11,11 @@ use PhpFlow\Domain\Impact\ImpactPath;
 
 final readonly class FindHttpImpact
 {
+    public function __construct(
+        private ImpactEntryPoints $entryPoints = new ImpactEntryPoints(),
+    ) {
+    }
+
     /** @return list<ImpactPath> */
     public function find(Graph $graph, string $query): array
     {
@@ -22,11 +27,7 @@ final readonly class FindHttpImpact
 
         $paths = [];
 
-        foreach ($graph->nodes() as $node) {
-            if ($node->type() !== NodeType::ROUTE) {
-                continue;
-            }
-
+        foreach ($this->entryPoints->find($graph) as $node) {
             foreach ($this->walk(
                 $graph,
                 $node,

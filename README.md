@@ -135,8 +135,8 @@ make inspect \
 
 ## Impact analysis
 
-PHPFlow can also traverse the graph backwards from a database table to the routes that can
-reach it.
+PHPFlow can also traverse the graph backwards from a database table to the application entry
+points that can reach it. Entry points include HTTP routes and standalone Messenger messages.
 
 ```bash
 make impact-table \
@@ -153,7 +153,7 @@ php bin/phpflow impact:table /path/to/project record_links
 Example:
 
 ```text
-Routes impacting table record_links
+Entry points impacting table record_links
 
 POST /catalog/{recordId}/sync
 └── CatalogController::sync
@@ -184,6 +184,12 @@ php bin/phpflow impact:table /path/to/project companies --operation=SELECT
 ```
 
 Supported filters are `SELECT`, `INSERT`, `UPDATE`, and `DELETE`.
+
+
+Standalone Messenger messages are treated as impact entry points when they are not already
+dispatched from another modelled route or process. This lets `impact:table` and `impact:http`
+report worker/consumer flows in addition to HTTP routes without duplicating messages that
+already belong to a route-driven path.
 
 External HTTP endpoints can be searched by full URL or by fragment:
 

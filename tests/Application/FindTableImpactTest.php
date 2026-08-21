@@ -145,4 +145,53 @@ final class FindTableImpactTest extends TestCase
     }
 
 
+    public function testItFindsStandaloneMessengerProcessesThatImpactATable(): void
+    {
+        $graph = new \PhpFlow\Domain\Graph\Graph();
+
+        $graph->addNode(new \PhpFlow\Domain\Graph\Node(
+            'message:import',
+            \PhpFlow\Domain\Graph\NodeType::MESSAGE,
+            'App\\Message\\ImportCompanies',
+        ));
+        $graph->addNode(new \PhpFlow\Domain\Graph\Node(
+            'handler:import',
+            \PhpFlow\Domain\Graph\NodeType::HANDLER,
+            'App\\MessageHandler\\ImportCompaniesHandler::__invoke',
+        ));
+        $graph->addNode(new \PhpFlow\Domain\Graph\Node(
+            'database:import',
+            \PhpFlow\Domain\Graph\NodeType::DATABASE,
+            'INSERT companies',
+        ));
+
+        $graph->addEdge(new \PhpFlow\Domain\Graph\Edge(
+            'message:import',
+            'handler:import',
+            \PhpFlow\Domain\Graph\EdgeType::HANDLED_BY,
+        ));
+        $graph->addEdge(new \PhpFlow\Domain\Graph\Edge(
+            'handler:import',
+            'database:import',
+            \PhpFlow\Domain\Graph\EdgeType::CALLS,
+        ));
+
+        $paths = (new FindTableImpact())->find(
+            $graph,
+            'companies',
+            'INSERT',
+        );
+
+        self::assertCount(1, $paths);
+        self::assertSame(
+            'App\\Message\\ImportCompanies',
+            $paths[0]->root()->label(),
+        );
+        self::assertSame(
+            'INSERT companies',
+            $paths[0]->effect()->label(),
+        );
+    }
+
+
 }
