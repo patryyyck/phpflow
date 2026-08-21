@@ -204,6 +204,7 @@ A short class name is accepted when convenient:
 
 ```bash
 make impact-message PROJECT_PATH=/path/to/project MESSAGE=SyncCompany
+make impact-service PROJECT_PATH=/path/to/project SERVICE=InvoiceGenerator
 ```
 
 Equivalent direct command:
@@ -211,6 +212,27 @@ Equivalent direct command:
 ```bash
 php bin/phpflow impact:message /path/to/project 'App\\Message\\SyncCompany'
 ```
+
+Application classes and methods can be searched to estimate the entry points affected by a
+code change:
+
+```bash
+make impact-service \
+    PROJECT_PATH=/path/to/project \
+    SERVICE='App\Service\InvoiceGenerator'
+```
+
+Target one method:
+
+```bash
+make impact-service \
+    PROJECT_PATH=/path/to/project \
+    SERVICE='App\Service\InvoiceGenerator::generate'
+```
+
+Short names such as `InvoiceGenerator` and `InvoiceGenerator::generate` are also accepted.
+The search includes services, repositories, handlers, and controllers represented in the
+flow graph.
 
 External HTTP endpoints can be searched by full URL or by fragment:
 
