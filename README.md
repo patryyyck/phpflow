@@ -315,6 +315,35 @@ The HTTP lookup is case-insensitive and matches against the complete effect labe
 the HTTP method and statically recovered URL. Both table and HTTP impact analysis now share
 the same cycle-safe reverse graph traversal.
 
+## Interactive HTML export
+
+PHPFlow can generate a self-contained interactive HTML viewer. No application server or
+external JavaScript dependency is required: the versioned graph JSON is embedded directly
+in the generated file.
+
+```bash
+make export-html \
+    PROJECT_PATH=/path/to/project \
+    HTML_OUTPUT=/tmp/phpflow.html
+```
+
+A route can be isolated just like the JSON and Mermaid exports:
+
+```bash
+make export-html \
+    PROJECT_PATH=/path/to/project \
+    HTML_OUTPUT=/tmp/phpflow-route.html \
+    ROUTE=/companies \
+    METHOD=GET
+```
+
+Open the generated file in a browser. The first viewer supports pan/zoom, fit/reset,
+filtering by node type, node selection, direct-connection counts, and inspection of the
+structured metadata introduced by JSON schema `1.1`.
+
+The viewer intentionally stays dependency-free for this first iteration. Branch
+expand/collapse and richer graph navigation are planned as a separate evolution.
+
 ## JSON export
 
 PHPFlow can export the same flow graph as a stable, versioned JSON contract. This format is

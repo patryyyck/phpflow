@@ -1,10 +1,11 @@
-.PHONY: build up down composer shell scan test inspect impact impact-table impact-http impact-message impact-service impact-exception export-mermaid export-json
+.PHONY: build up down composer shell scan test inspect impact impact-table impact-http impact-message impact-service impact-exception export-mermaid export-json export-html
 
 PROJECT_PATH ?= .
 ROUTE ?=
 METHOD ?= GET
 MERMAID_OUTPUT ?= /tmp/phpflow.mmd
 JSON_OUTPUT ?= /tmp/phpflow.json
+HTML_OUTPUT ?= /tmp/phpflow.html
 IMPACT_FORMAT ?= text
 IMPACT_OUTPUT ?=
 MAX_DEPTH ?= 10
@@ -137,3 +138,23 @@ export-json:
 			--output="/output/$$(basename "$(JSON_OUTPUT)")"; \
 	fi
 	@echo "JSON graph written to $(JSON_OUTPUT)"
+
+
+export-html:
+	@if [ -n "$(ROUTE)" ]; then \
+		docker compose run --rm \
+			-v "$(PROJECT_PATH):/workspace:ro" \
+			-v "$$(dirname "$(HTML_OUTPUT)"):/output" \
+			php php bin/phpflow export:html /workspace \
+			--output="/output/$$(basename "$(HTML_OUTPUT)")" \
+			--route="$(ROUTE)" \
+			--method="$(METHOD)" \
+			--max-depth="$(MAX_DEPTH)"; \
+	else \
+		docker compose run --rm \
+			-v "$(PROJECT_PATH):/workspace:ro" \
+			-v "$$(dirname "$(HTML_OUTPUT)"):/output" \
+			php php bin/phpflow export:html /workspace \
+			--output="/output/$$(basename "$(HTML_OUTPUT)")"; \
+	fi
+	@echo "Interactive HTML graph written to $(HTML_OUTPUT)"
