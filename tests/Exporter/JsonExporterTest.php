@@ -28,18 +28,21 @@ final class JsonExporterTest extends TestCase
             ['url' => '/companies'],
         ));
 
-        $data = json_decode(
-            (new JsonExporter())->export($graph),
-            true,
-            flags: JSON_THROW_ON_ERROR,
-        );
+        $data = $this->decode($graph);
 
-        self::assertSame('1.0', $data['schemaVersion']);
+        self::assertSame('1.1', $data['schemaVersion']);
         self::assertSame(
             [
                 'id' => 'route:GET:/companies',
                 'type' => 'route',
                 'label' => 'GET /companies',
+                'metadata' => [
+                    'entryPoint' => true,
+                    'route' => [
+                        'method' => 'GET',
+                        'path' => '/companies',
+                    ],
+                ],
             ],
             $data['nodes'][0],
         );
@@ -56,6 +59,100 @@ final class JsonExporterTest extends TestCase
         );
     }
 
+    public function testItExportsStructuredMetadataForUiConsumers(): void
+    {
+        $graph = new Graph();
+
+        $graph->addNode(new Node(
+            'message:App\\Message\\SyncCompany',
+            NodeType::MESSAGE,
+            'App\\Message\\SyncCompany',
+        ));
+        $graph->addNode(new Node(
+            'handler:sync',
+            NodeType::HANDLER,
+            'App\\Handler\\SyncCompanyHandler::__invoke',
+        ));
+        $graph->addNode(new Node(
+            'database:sync',
+            NodeType::DATABASE,
+            'UPDATE public.companies',
+        ));
+        $graph->addNode(new Node(
+            'http:sync',
+            NodeType::HTTP_ENDPOINT,
+            'POST %directory.base_url%/v2/sync',
+        ));
+        $graph->addNode(new Node(
+            'exception:sync',
+            NodeType::EXCEPTION,
+            'throws App\\Exception\\SyncFailed',
+        ));
+
+        $graph->addEdge(new Edge(
+            'message:App\\Message\\SyncCompany',
+            'handler:sync',
+            EdgeType::HANDLED_BY,
+        ));
+
+        $data = $this->decode($graph);
+
+        self::assertSame(
+            [
+                'entryPoint' => true,
+                'message' => [
+                    'class' => 'App\\Message\\SyncCompany',
+                    'shortName' => 'SyncCompany',
+                ],
+            ],
+            $data['nodes'][0]['metadata'],
+        );
+
+        self::assertSame(
+            [
+                'entryPoint' => false,
+                'callable' => [
+                    'class' => 'App\\Handler\\SyncCompanyHandler',
+                    'method' => '__invoke',
+                ],
+            ],
+            $data['nodes'][1]['metadata'],
+        );
+
+        self::assertSame(
+            [
+                'entryPoint' => false,
+                'database' => [
+                    'operation' => 'UPDATE',
+                    'target' => 'public.companies',
+                ],
+            ],
+            $data['nodes'][2]['metadata'],
+        );
+
+        self::assertSame(
+            [
+                'entryPoint' => false,
+                'http' => [
+                    'method' => 'POST',
+                    'url' => '%directory.base_url%/v2/sync',
+                ],
+            ],
+            $data['nodes'][3]['metadata'],
+        );
+
+        self::assertSame(
+            [
+                'entryPoint' => false,
+                'exception' => [
+                    'class' => 'App\\Exception\\SyncFailed',
+                    'shortName' => 'SyncFailed',
+                ],
+            ],
+            $data['nodes'][4]['metadata'],
+        );
+    }
+
     public function testItOmitsOptionalNullEdgeFields(): void
     {
         $graph = new Graph();
@@ -63,11 +160,7 @@ final class JsonExporterTest extends TestCase
         $graph->addNode(new Node('service', NodeType::SERVICE, 'App\\Service::run'));
         $graph->addEdge(new Edge('route', 'service', EdgeType::CALLS));
 
-        $data = json_decode(
-            (new JsonExporter())->export($graph),
-            true,
-            flags: JSON_THROW_ON_ERROR,
-        );
+        $data = $this->decode($graph);
 
         self::assertSame(
             [
@@ -76,6 +169,16 @@ final class JsonExporterTest extends TestCase
                 'type' => 'calls',
             ],
             $data['edges'][0],
+        );
+    }
+
+    /** @return array<string, mixed> */
+    private function decode(Graph $graph): array
+    {
+        return json_decode(
+            (new JsonExporter())->export($graph),
+            true,
+            flags: JSON_THROW_ON_ERROR,
         );
     }
 }

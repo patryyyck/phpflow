@@ -319,21 +319,34 @@ The top-level `schemaVersion` identifies the contract version:
 
 ```json
 {
-    "schemaVersion": "1.0",
+    "schemaVersion": "1.1",
     "nodes": [
         {
             "id": "route:GET:/companies",
             "type": "route",
-            "label": "GET /companies"
+            "label": "GET /companies",
+            "metadata": {
+                "entryPoint": true,
+                "route": {
+                    "method": "GET",
+                    "path": "/companies"
+                }
+            }
         }
     ],
     "edges": []
 }
 ```
 
+Nodes expose structured `metadata` for UI and integration consumers. Depending on the node
+type this can include route method/path, callable class/method, message or exception class,
+database operation/target, and HTTP method/URL. Every node also exposes an `entryPoint`
+boolean so consumers do not need to infer application roots from graph topology.
+
 Edges expose `source`, `target`, and `type`, plus `label`, source `order`, and propagated
 `context` when those values exist. Consumers should use `schemaVersion` rather than relying
-on PHPFlow's internal object structure.
+on PHPFlow's internal object structure. Schema `1.1` is additive over `1.0`: the original
+`id`, `type`, and `label` fields remain unchanged.
 
 ## Mermaid export
 
