@@ -293,6 +293,48 @@ The HTTP lookup is case-insensitive and matches against the complete effect labe
 the HTTP method and statically recovered URL. Both table and HTTP impact analysis now share
 the same cycle-safe reverse graph traversal.
 
+## JSON export
+
+PHPFlow can export the same flow graph as a stable, versioned JSON contract. This format is
+intended for integrations and future interactive graph visualizations without coupling them
+to PHPFlow's internal PHP objects.
+
+```bash
+make export-json \
+    PROJECT_PATH=/path/to/project \
+    JSON_OUTPUT=/tmp/phpflow.json
+```
+
+Export only one route:
+
+```bash
+make export-json \
+    PROJECT_PATH=/path/to/project \
+    JSON_OUTPUT=/tmp/phpflow.json \
+    ROUTE=/companies \
+    METHOD=GET
+```
+
+The top-level `schemaVersion` identifies the contract version:
+
+```json
+{
+    "schemaVersion": "1.0",
+    "nodes": [
+        {
+            "id": "route:GET:/companies",
+            "type": "route",
+            "label": "GET /companies"
+        }
+    ],
+    "edges": []
+}
+```
+
+Edges expose `source`, `target`, and `type`, plus `label`, source `order`, and propagated
+`context` when those values exist. Consumers should use `schemaVersion` rather than relying
+on PHPFlow's internal object structure.
+
 ## Mermaid export
 
 Export the complete graph:

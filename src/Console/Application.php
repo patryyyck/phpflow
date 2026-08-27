@@ -15,6 +15,7 @@ use PhpFlow\Application\ScanProject;
 use PhpFlow\Application\TraverseFlowGraph;
 use PhpFlow\Application\AnalyzeProject;
 use PhpFlow\Console\Command\ExportMermaidCommand;
+use PhpFlow\Console\Command\ExportJsonCommand;
 use PhpFlow\Console\Command\InspectCommand;
 use PhpFlow\Console\Command\ImpactTableCommand;
 use PhpFlow\Console\Command\ImpactHttpCommand;
@@ -25,6 +26,7 @@ use PhpFlow\Console\Command\ImpactCommand;
 use PhpFlow\Console\Command\ScanCommand;
 use PhpFlow\Console\ImpactPathRenderer;
 use PhpFlow\Exporter\MermaidExporter;
+use PhpFlow\Exporter\JsonExporter;
 use PhpFlow\Infrastructure\Messenger\MessengerRoutingReader;
 use PhpFlow\Infrastructure\Scanner\DirectoryScanner;
 use PhpFlow\Version;
@@ -43,6 +45,14 @@ final class Application
             new AnalyzeProject(new \PhpFlow\Ast\ProjectAstAnalyzer(), new MessengerRoutingReader()),
         ));
 
+
+        $this->application->add(new ExportJsonCommand(
+            new ScanProject(new DirectoryScanner()),
+            new AnalyzeProject(new \PhpFlow\Ast\ProjectAstAnalyzer(), new MessengerRoutingReader()),
+            new BuildFlowGraph(),
+            new ExtractSubgraph(),
+            new JsonExporter(),
+        ));
 
         $this->application->add(new ExportMermaidCommand(
             new ScanProject(new DirectoryScanner()),
