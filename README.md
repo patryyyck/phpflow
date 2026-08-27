@@ -135,6 +135,25 @@ make inspect \
 
 ## Impact analysis
 
+PHPFlow also exposes a unified impact command. Choose exactly one target:
+
+```bash
+php bin/phpflow impact /path/to/project --table=companies
+php bin/phpflow impact /path/to/project --http='/v2/directory/search'
+php bin/phpflow impact /path/to/project --message=SyncCompany
+php bin/phpflow impact /path/to/project --service='InvoiceGenerator::generate'
+php bin/phpflow impact /path/to/project --exception=PaymentFailed
+```
+
+Use `--summary` to list only the unique impacted entry points. The existing specialized
+`impact:*` commands remain available.
+
+With the Makefile, the same facade is available through `make impact`, for example:
+
+```bash
+make impact PROJECT_PATH=/path/to/project SERVICE='InvoiceGenerator::generate' SUMMARY=1
+```
+
 PHPFlow can also traverse the graph backwards from a database table to the application entry
 points that can reach it. Entry points include HTTP routes and standalone Messenger messages.
 

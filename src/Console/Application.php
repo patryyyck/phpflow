@@ -21,6 +21,7 @@ use PhpFlow\Console\Command\ImpactHttpCommand;
 use PhpFlow\Console\Command\ImpactMessageCommand;
 use PhpFlow\Console\Command\ImpactServiceCommand;
 use PhpFlow\Console\Command\ImpactExceptionCommand;
+use PhpFlow\Console\Command\ImpactCommand;
 use PhpFlow\Console\Command\ScanCommand;
 use PhpFlow\Console\ImpactPathRenderer;
 use PhpFlow\Exporter\MermaidExporter;
@@ -49,6 +50,18 @@ final class Application
             new BuildFlowGraph(),
             new ExtractSubgraph(),
             new MermaidExporter(),
+        ));
+
+        $this->application->add(new ImpactCommand(
+            new ScanProject(new DirectoryScanner()),
+            new AnalyzeProject(new \PhpFlow\Ast\ProjectAstAnalyzer(), new MessengerRoutingReader()),
+            new BuildFlowGraph(),
+            new FindTableImpact(),
+            new FindHttpImpact(),
+            new FindMessageImpact(),
+            new FindServiceImpact(),
+            new FindExceptionImpact(),
+            new ImpactPathRenderer(),
         ));
 
         $this->application->add(new ImpactHttpCommand(
