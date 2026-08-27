@@ -84,6 +84,7 @@ final readonly class ImpactJsonExporter
             'id' => $node->id(),
             'type' => $node->type()->value,
             'label' => $node->label(),
+            'displayLabel' => $this->metadata->displayLabel($node),
             'metadata' => $this->metadata->for($graph, $node),
         ];
     }

@@ -12,6 +12,26 @@ final class Graph
     /** @var array<string, Edge> */
     private array $edges = [];
 
+    /** @var array<string, string> */
+    private array $symbolFiles = [];
+
+    /** @param array<string, string> $symbolFiles */
+    public function setSymbolFiles(array $symbolFiles): void
+    {
+        $this->symbolFiles = $symbolFiles;
+    }
+
+    /** @return array<string, string> */
+    public function symbolFiles(): array
+    {
+        return $this->symbolFiles;
+    }
+
+    public function symbolFile(string $symbol): ?string
+    {
+        return $this->symbolFiles[$symbol] ?? null;
+    }
+
     public function addNode(Node $node): void
     {
         $this->nodes[$node->id()] = $node;

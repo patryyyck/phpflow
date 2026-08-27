@@ -30,12 +30,13 @@ final class JsonExporterTest extends TestCase
 
         $data = $this->decode($graph);
 
-        self::assertSame('1.1', $data['schemaVersion']);
+        self::assertSame('1.2', $data['schemaVersion']);
         self::assertSame(
             [
                 'id' => 'route:GET:/companies',
                 'type' => 'route',
                 'label' => 'GET /companies',
+                'displayLabel' => 'GET /companies',
                 'metadata' => [
                     'entryPoint' => true,
                     'route' => [
@@ -103,6 +104,8 @@ final class JsonExporterTest extends TestCase
                 'message' => [
                     'class' => 'App\\Message\\SyncCompany',
                     'shortName' => 'SyncCompany',
+                    'namespace' => 'App\\Message',
+                    'file' => null,
                 ],
             ],
             $data['nodes'][0]['metadata'],
@@ -113,7 +116,10 @@ final class JsonExporterTest extends TestCase
                 'entryPoint' => false,
                 'callable' => [
                     'class' => 'App\\Handler\\SyncCompanyHandler',
+                    'shortName' => 'SyncCompanyHandler',
+                    'namespace' => 'App\\Handler',
                     'method' => '__invoke',
+                    'file' => null,
                 ],
             ],
             $data['nodes'][1]['metadata'],
@@ -147,6 +153,8 @@ final class JsonExporterTest extends TestCase
                 'exception' => [
                     'class' => 'App\\Exception\\SyncFailed',
                     'shortName' => 'SyncFailed',
+                    'namespace' => 'App\\Exception',
+                    'file' => null,
                 ],
             ],
             $data['nodes'][4]['metadata'],

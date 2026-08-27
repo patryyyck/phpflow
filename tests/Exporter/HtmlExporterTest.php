@@ -25,10 +25,12 @@ final class HtmlExporterTest extends TestCase
 
         self::assertStringContainsString('<!doctype html>', $html);
         self::assertStringContainsString('id="phpflow-data"', $html);
-        self::assertStringContainsString('"schemaVersion": "1.1"', $html);
+        self::assertStringContainsString('"schemaVersion": "1.2"', $html);
         self::assertStringContainsString('"label": "GET /companies"', $html);
         self::assertStringContainsString('Fit graph', $html);
         self::assertStringContainsString('Node details', $html);
+        self::assertStringContainsString('displayLabel', $html);
+        self::assertStringContainsString('Canonical label', $html);
         self::assertStringContainsString('Focus branch', $html);
         self::assertStringContainsString('Direct only', $html);
         self::assertStringContainsString('Go to entry point', $html);

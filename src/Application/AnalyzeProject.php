@@ -111,6 +111,17 @@ final readonly class AnalyzeProject
             );
         }
 
+        $symbolFiles = [];
+
+        foreach ($index->symbolFiles() as $symbol => $file) {
+            $normalizedProject = rtrim(str_replace('\\', '/', $project->path()), '/');
+            $normalizedFile = str_replace('\\', '/', $file);
+
+            $symbolFiles[$symbol] = str_starts_with($normalizedFile, $normalizedProject.'/')
+                ? substr($normalizedFile, strlen($normalizedProject) + 1)
+                : $normalizedFile;
+        }
+
         return new ProjectAnalysis(
             $ast->statistics(),
             $ast->attributes(),
@@ -132,6 +143,7 @@ final readonly class AnalyzeProject
             $ast->guardClauses(),
             $ast->controlBranches(),
             $ast->loopControls(),
+            $symbolFiles,
         );
     }
 }

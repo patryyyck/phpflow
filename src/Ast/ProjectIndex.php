@@ -148,6 +148,17 @@ final class ProjectIndex
         return isset($this->testSymbols[$symbol]);
     }
 
+    /** @return array<string, string> */
+    public function symbolFiles(): array
+    {
+        return $this->symbolFiles;
+    }
+
+    public function symbolFile(string $symbol): ?string
+    {
+        return $this->symbolFiles[$symbol] ?? null;
+    }
+
     public function hasSymbol(string $symbol): bool
     {
         return array_key_exists($symbol, $this->parents);

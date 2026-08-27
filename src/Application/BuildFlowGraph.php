@@ -16,6 +16,7 @@ final class BuildFlowGraph
     public function build(ProjectAnalysis $analysis): Graph
     {
         $graph = new Graph();
+        $graph->setSymbolFiles($analysis->symbolFiles());
 
         foreach ($analysis->routes() as $route) {
             $routeId = $this->routeId($route->methods(), $route->path());

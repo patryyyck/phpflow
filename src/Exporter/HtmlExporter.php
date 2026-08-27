@@ -121,7 +121,7 @@ function render(){
   if(directOnly&&selected&&!highlight.has(n.id))cls+=' dimmed';
   const g=el('g',{class:cls,transform:`translate(${p.x} ${p.y})`});
   g.appendChild(el('circle',{r:17,fill:colors[n.type]||'#475569'}));
-  const label=el('text',{x:25,y:4});label.textContent=n.label.length>52?n.label.slice(0,49)+'…':n.label;g.appendChild(label);
+  const label=el('text',{x:25,y:4});const shown=n.displayLabel||n.label;label.textContent=shown.length>52?shown.slice(0,49)+'…':shown;g.appendChild(label);
   const children=(outgoing.get(n.id)||[]).filter(id=>enabled.has(nodeById.get(id)?.type));
   if(children.length){
    const toggle=el('g',{class:'toggle',transform:'translate(-24 0)'});
@@ -137,7 +137,9 @@ function render(){
 }
 function showDetails(n){
  const direct=graph.edges.filter(e=>e.source===n.id||e.target===n.id),entry=entryPointFor(n.id),children=(outgoing.get(n.id)||[]).length;
- document.getElementById('details').innerHTML=`<div class="kv"><strong>Type</strong><span class="badge">${escapeHtml(n.type)}</span></div><div class="kv"><strong>Label</strong>${escapeHtml(n.label)}</div><div class="kv"><strong>ID</strong>${escapeHtml(n.id)}</div><div class="kv"><strong>Direct connections</strong>${direct.length}</div><div class="kv"><strong>Descendants</strong>${descendants(n.id).size}</div>${entry?`<div class="kv"><strong>Entry point</strong>${escapeHtml(entry.label)}</div>`:''}<div class="nav-actions"><button id="focus-node">Focus branch</button><button id="direct-node">Direct only</button>${entry&&entry.id!==n.id?'<button id="entry-node">Go to entry point</button>':''}${children?`<button id="toggle-node">${collapsed.has(n.id)?'Expand':'Collapse'} branch</button>`:''}${focusRoot?'<button id="clear-focus">Clear focus</button>':''}</div><div class="kv"><strong>Metadata</strong><div class="json">${escapeHtml(JSON.stringify(n.metadata||{},null,2))}</div></div>`;
+ const ref=n.metadata?.callable||n.metadata?.message||n.metadata?.exception||null;
+ const sourceDetails=ref?`<div class="kv"><strong>Class</strong>${escapeHtml(ref.shortName||'')}</div><div class="kv"><strong>Namespace</strong>${escapeHtml(ref.namespace||'—')}</div>${ref.method!==undefined?`<div class="kv"><strong>Method</strong>${escapeHtml(ref.method||'—')}</div>`:''}<div class="kv"><strong>FQCN</strong>${escapeHtml(ref.class||'')}</div><div class="kv"><strong>File</strong>${escapeHtml(ref.file||'Unknown')}</div>`:'';
+ document.getElementById('details').innerHTML=`<div class="kv"><strong>Type</strong><span class="badge">${escapeHtml(n.type)}</span></div><div class="kv"><strong>Display label</strong>${escapeHtml(n.displayLabel||n.label)}</div>${sourceDetails}<div class="kv"><strong>Canonical label</strong>${escapeHtml(n.label)}</div><div class="kv"><strong>ID</strong>${escapeHtml(n.id)}</div><div class="kv"><strong>Direct connections</strong>${direct.length}</div><div class="kv"><strong>Descendants</strong>${descendants(n.id).size}</div>${entry?`<div class="kv"><strong>Entry point</strong>${escapeHtml(entry.displayLabel||entry.label)}</div>`:''}<div class="nav-actions"><button id="focus-node">Focus branch</button><button id="direct-node">Direct only</button>${entry&&entry.id!==n.id?'<button id="entry-node">Go to entry point</button>':''}${children?`<button id="toggle-node">${collapsed.has(n.id)?'Expand':'Collapse'} branch</button>`:''}${focusRoot?'<button id="clear-focus">Clear focus</button>':''}</div><div class="kv"><strong>Metadata</strong><div class="json">${escapeHtml(JSON.stringify(n.metadata||{},null,2))}</div></div>`;
  document.getElementById('focus-node').onclick=()=>{focusRoot=n.id;directOnly=false;fit()};
  document.getElementById('direct-node').onclick=()=>{directOnly=!directOnly;render()};
  const ep=document.getElementById('entry-node');if(ep)ep.onclick=()=>{selected=entry.id;focusRoot=null;directOnly=false;showDetails(entry);render();centerOn(entry.id)};

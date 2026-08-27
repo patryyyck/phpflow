@@ -19,6 +19,7 @@ final class ExtractSubgraph
         }
 
         $subgraph = new Graph();
+        $subgraph->setSymbolFiles($graph->symbolFiles());
         $this->walk($graph, $subgraph, $startNodeId, $maxDepth, 0, []);
 
         return $subgraph;

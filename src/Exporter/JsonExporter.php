@@ -10,7 +10,7 @@ use PhpFlow\Domain\Graph\Node;
 
 final readonly class JsonExporter
 {
-    public const string SCHEMA_VERSION = '1.1';
+    public const string SCHEMA_VERSION = '1.2';
 
     public function __construct(
         private JsonNodeMetadata $metadata = new JsonNodeMetadata(),
@@ -26,6 +26,7 @@ final readonly class JsonExporter
                     'id' => $node->id(),
                     'type' => $node->type()->value,
                     'label' => $node->label(),
+                    'displayLabel' => $this->metadata->displayLabel($node),
                     'metadata' => $this->metadata->for($graph, $node),
                 ],
                 $graph->nodes(),

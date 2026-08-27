@@ -26,6 +26,7 @@ final readonly class ProjectAnalysis
      * @param list<GuardClause> $guardClauses
      * @param list<ControlBranch> $controlBranches
      * @param list<LoopControl> $loopControls
+     * @param array<string, string> $symbolFiles
      */
     public function __construct(
         private ProjectStatistics $statistics,
@@ -48,6 +49,7 @@ final readonly class ProjectAnalysis
         private array $guardClauses = [],
         private array $controlBranches = [],
         private array $loopControls = [],
+        private array $symbolFiles = [],
     ) {
     }
 
@@ -109,4 +111,7 @@ final readonly class ProjectAnalysis
 
     /** @return list<LoopControl> */
     public function loopControls(): array { return $this->loopControls; }
+
+    /** @return array<string, string> */
+    public function symbolFiles(): array { return $this->symbolFiles; }
 }

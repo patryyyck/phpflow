@@ -339,7 +339,7 @@ make export-html \
 
 Open the generated file in a browser. The viewer supports pan/zoom, fit/reset, filtering by
 node type, node selection, direct-connection counts, and inspection of the structured
-metadata introduced by JSON schema `1.1`.
+metadata introduced by JSON schema `1.2`.
 
 Branches can be collapsed and expanded directly from graph nodes. From the details panel,
 you can focus the selected branch, highlight only its direct connections, jump back to the
@@ -375,7 +375,7 @@ The top-level `schemaVersion` identifies the contract version:
 
 ```json
 {
-    "schemaVersion": "1.1",
+    "schemaVersion": "1.2",
     "nodes": [
         {
             "id": "route:GET:/companies",
@@ -394,14 +394,16 @@ The top-level `schemaVersion` identifies the contract version:
 }
 ```
 
-Nodes expose structured `metadata` for UI and integration consumers. Depending on the node
-type this can include route method/path, callable class/method, message or exception class,
-database operation/target, and HTTP method/URL. Every node also exposes an `entryPoint`
-boolean so consumers do not need to infer application roots from graph topology.
+Nodes expose both their canonical `label` and a UI-oriented `displayLabel`. Callable,
+message, and exception nodes keep the full namespace in `label` while `displayLabel` uses
+the short class name for readability. Structured metadata includes `class`, `shortName`,
+`namespace`, method when relevant, and the real indexed source `file` when PHPFlow knows it.
+Route, database, and HTTP metadata remain structured as before. Every node also exposes an
+`entryPoint` boolean so consumers do not need to infer application roots from graph topology.
 
 Edges expose `source`, `target`, and `type`, plus `label`, source `order`, and propagated
 `context` when those values exist. Consumers should use `schemaVersion` rather than relying
-on PHPFlow's internal object structure. Schema `1.1` is additive over `1.0`: the original
+on PHPFlow's internal object structure. Schema `1.2` remains additive: canonical labels and IDs are unchanged: the original
 `id`, `type`, and `label` fields remain unchanged.
 
 ## Mermaid export
