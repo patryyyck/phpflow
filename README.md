@@ -205,6 +205,7 @@ A short class name is accepted when convenient:
 ```bash
 make impact-message PROJECT_PATH=/path/to/project MESSAGE=SyncCompany
 make impact-service PROJECT_PATH=/path/to/project SERVICE=InvoiceGenerator
+make impact-exception PROJECT_PATH=/path/to/project EXCEPTION=PaymentFailed
 ```
 
 Equivalent direct command:
@@ -233,6 +234,25 @@ make impact-service \
 Short names such as `InvoiceGenerator` and `InvoiceGenerator::generate` are also accepted.
 The search includes services, repositories, handlers, and controllers represented in the
 flow graph.
+
+Thrown exceptions can be searched in reverse to identify every route or standalone
+Messenger process that can reach the corresponding `throw`:
+
+```bash
+make impact-exception \
+    PROJECT_PATH=/path/to/project \
+    EXCEPTION='App\Exception\PaymentFailed'
+```
+
+Short exception class names are also accepted:
+
+```bash
+make impact-exception \
+    PROJECT_PATH=/path/to/project \
+    EXCEPTION=PaymentFailed
+```
+
+Conditional branches leading to the exception remain visible in the returned path.
 
 External HTTP endpoints can be searched by full URL or by fragment:
 

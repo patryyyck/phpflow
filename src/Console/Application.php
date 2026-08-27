@@ -10,6 +10,7 @@ use PhpFlow\Application\FindTableImpact;
 use PhpFlow\Application\FindHttpImpact;
 use PhpFlow\Application\FindMessageImpact;
 use PhpFlow\Application\FindServiceImpact;
+use PhpFlow\Application\FindExceptionImpact;
 use PhpFlow\Application\ScanProject;
 use PhpFlow\Application\TraverseFlowGraph;
 use PhpFlow\Application\AnalyzeProject;
@@ -19,6 +20,7 @@ use PhpFlow\Console\Command\ImpactTableCommand;
 use PhpFlow\Console\Command\ImpactHttpCommand;
 use PhpFlow\Console\Command\ImpactMessageCommand;
 use PhpFlow\Console\Command\ImpactServiceCommand;
+use PhpFlow\Console\Command\ImpactExceptionCommand;
 use PhpFlow\Console\Command\ScanCommand;
 use PhpFlow\Console\ImpactPathRenderer;
 use PhpFlow\Exporter\MermaidExporter;
@@ -70,6 +72,14 @@ final class Application
             new AnalyzeProject(new \PhpFlow\Ast\ProjectAstAnalyzer(), new MessengerRoutingReader()),
             new BuildFlowGraph(),
             new FindServiceImpact(),
+            new ImpactPathRenderer(),
+        ));
+
+        $this->application->add(new ImpactExceptionCommand(
+            new ScanProject(new DirectoryScanner()),
+            new AnalyzeProject(new \PhpFlow\Ast\ProjectAstAnalyzer(), new MessengerRoutingReader()),
+            new BuildFlowGraph(),
+            new FindExceptionImpact(),
             new ImpactPathRenderer(),
         ));
 

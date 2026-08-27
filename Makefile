@@ -1,4 +1,4 @@
-.PHONY: build up down composer shell scan test inspect impact-table impact-http impact-message impact-service export-mermaid
+.PHONY: build up down composer shell scan test inspect impact-table impact-http impact-message impact-service impact-exception export-mermaid
 
 PROJECT_PATH ?= .
 ROUTE ?=
@@ -11,6 +11,7 @@ OPERATION ?=
 HTTP ?=
 MESSAGE ?=
 SERVICE ?=
+EXCEPTION ?=
 
 build:
 	docker compose build
@@ -55,6 +56,11 @@ impact-service:
 	docker compose run --rm \
 		-v "$(PROJECT_PATH):/workspace:ro" \
 		php php bin/phpflow impact:service /workspace "$(SERVICE)"
+
+impact-exception:
+	docker compose run --rm \
+		-v "$(PROJECT_PATH):/workspace:ro" \
+		php php bin/phpflow impact:exception /workspace "$(EXCEPTION)"
 
 impact-table:
 	docker compose run --rm \
