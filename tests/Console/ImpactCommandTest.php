@@ -16,6 +16,7 @@ use PhpFlow\Console\Command\ImpactCommand;
 use PhpFlow\Console\ImpactPathRenderer;
 use PhpFlow\Infrastructure\Messenger\MessengerRoutingReader;
 use PhpFlow\Infrastructure\Scanner\DirectoryScanner;
+use PhpFlow\Exporter\ImpactJsonExporter;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
@@ -76,6 +77,48 @@ final class ImpactCommandTest extends TestCase
         self::assertStringNotContainsString('└──', $display);
     }
 
+    public function testItCanRenderImpactAsJson(): void
+    {
+        $tester = new CommandTester($this->command());
+
+        self::assertSame(
+            Command::SUCCESS,
+            $tester->execute([
+                'path' => __DIR__.'/../Fixtures/SimpleProject',
+                '--table' => 'companies',
+                '--format' => 'json',
+            ]),
+        );
+
+        $data = json_decode(
+            $tester->getDisplay(),
+            true,
+            flags: JSON_THROW_ON_ERROR,
+        );
+
+        self::assertSame('1.0', $data['schemaVersion']);
+        self::assertSame('table', $data['target']['type']);
+        self::assertSame('companies', $data['target']['query']);
+        self::assertArrayHasKey('entryPoints', $data);
+        self::assertArrayHasKey('paths', $data);
+    }
+
+    public function testJsonFormatCannotBeCombinedWithSummary(): void
+    {
+        $tester = new CommandTester($this->command());
+
+        self::assertSame(
+            Command::INVALID,
+            $tester->execute([
+                'path' => __DIR__.'/../Fixtures/SimpleProject',
+                '--table' => 'companies',
+                '--format' => 'json',
+                '--summary' => true,
+            ]),
+        );
+    }
+
+
     private function command(): ImpactCommand
     {
         return new ImpactCommand(
@@ -91,6 +134,7 @@ final class ImpactCommandTest extends TestCase
             new FindServiceImpact(),
             new FindExceptionImpact(),
             new ImpactPathRenderer(),
+            new ImpactJsonExporter(),
         );
     }
 }

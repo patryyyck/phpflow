@@ -5,6 +5,8 @@ ROUTE ?=
 METHOD ?= GET
 MERMAID_OUTPUT ?= /tmp/phpflow.mmd
 JSON_OUTPUT ?= /tmp/phpflow.json
+IMPACT_FORMAT ?= text
+IMPACT_OUTPUT ?=
 MAX_DEPTH ?= 10
 SUMMARY ?=
 TABLE ?=
@@ -44,16 +46,33 @@ inspect:
 		$(if $(SUMMARY),--summary,)
 
 impact:
-	docker compose run --rm \
-		-v "$(PROJECT_PATH):/workspace:ro" \
-		php php bin/phpflow impact /workspace \
-		$(if $(TABLE),--table="$(TABLE)",) \
-		$(if $(OPERATION),--operation="$(OPERATION)",) \
-		$(if $(HTTP),--http="$(HTTP)",) \
-		$(if $(MESSAGE),--message="$(MESSAGE)",) \
-		$(if $(SERVICE),--service="$(SERVICE)",) \
-		$(if $(EXCEPTION),--exception="$(EXCEPTION)",) \
-		$(if $(SUMMARY),--summary,)
+	@if [ -n "$(IMPACT_OUTPUT)" ]; then \
+		docker compose run --rm \
+			-v "$(PROJECT_PATH):/workspace:ro" \
+			-v "$$(dirname "$(IMPACT_OUTPUT)"):/output" \
+			php php bin/phpflow impact /workspace \
+			$(if $(TABLE),--table="$(TABLE)",) \
+			$(if $(OPERATION),--operation="$(OPERATION)",) \
+			$(if $(HTTP),--http="$(HTTP)",) \
+			$(if $(MESSAGE),--message="$(MESSAGE)",) \
+			$(if $(SERVICE),--service="$(SERVICE)",) \
+			$(if $(EXCEPTION),--exception="$(EXCEPTION)",) \
+			--format="$(IMPACT_FORMAT)" \
+			--output="/output/$$(basename "$(IMPACT_OUTPUT)")" \
+			$(if $(SUMMARY),--summary,); \
+	else \
+		docker compose run --rm \
+			-v "$(PROJECT_PATH):/workspace:ro" \
+			php php bin/phpflow impact /workspace \
+			$(if $(TABLE),--table="$(TABLE)",) \
+			$(if $(OPERATION),--operation="$(OPERATION)",) \
+			$(if $(HTTP),--http="$(HTTP)",) \
+			$(if $(MESSAGE),--message="$(MESSAGE)",) \
+			$(if $(SERVICE),--service="$(SERVICE)",) \
+			$(if $(EXCEPTION),--exception="$(EXCEPTION)",) \
+			--format="$(IMPACT_FORMAT)" \
+			$(if $(SUMMARY),--summary,); \
+	fi
 
 impact-http:
 	docker compose run --rm \

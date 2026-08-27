@@ -148,6 +148,28 @@ php bin/phpflow impact /path/to/project --exception=PaymentFailed
 Use `--summary` to list only the unique impacted entry points. The existing specialized
 `impact:*` commands remain available.
 
+
+Impact results can also be emitted as a dedicated versioned JSON contract:
+
+```bash
+php bin/phpflow impact /path/to/project \
+    --table=companies \
+    --format=json
+```
+
+Write the focused blast radius to a file:
+
+```bash
+php bin/phpflow impact /path/to/project \
+    --service='InvoiceGenerator::generate' \
+    --format=json \
+    --output=/tmp/phpflow-impact.json
+```
+
+The impact JSON contract starts at `schemaVersion: "1.0"` and contains the search `target`,
+unique `entryPoints`, structured `nodes`, and each complete impact `path` as node IDs. It is
+designed for CI integrations and focused views in the future interactive PHPFlow UI.
+
 With the Makefile, the same facade is available through `make impact`, for example:
 
 ```bash

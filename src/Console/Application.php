@@ -27,6 +27,7 @@ use PhpFlow\Console\Command\ScanCommand;
 use PhpFlow\Console\ImpactPathRenderer;
 use PhpFlow\Exporter\MermaidExporter;
 use PhpFlow\Exporter\JsonExporter;
+use PhpFlow\Exporter\ImpactJsonExporter;
 use PhpFlow\Infrastructure\Messenger\MessengerRoutingReader;
 use PhpFlow\Infrastructure\Scanner\DirectoryScanner;
 use PhpFlow\Version;
@@ -72,6 +73,7 @@ final class Application
             new FindServiceImpact(),
             new FindExceptionImpact(),
             new ImpactPathRenderer(),
+            new ImpactJsonExporter(),
         ));
 
         $this->application->add(new ImpactHttpCommand(
