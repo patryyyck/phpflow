@@ -29,6 +29,10 @@ final class HtmlExporterTest extends TestCase
         self::assertStringContainsString('"label": "GET /companies"', $html);
         self::assertStringContainsString('Fit graph', $html);
         self::assertStringContainsString('Node details', $html);
+        self::assertStringContainsString('Focus branch', $html);
+        self::assertStringContainsString('Direct only', $html);
+        self::assertStringContainsString('Go to entry point', $html);
+        self::assertStringContainsString('collapsed=new Set()', $html);
         self::assertStringNotContainsString('<script src=', $html);
         self::assertStringNotContainsString('<link rel="stylesheet" href=', $html);
         self::assertStringNotContainsString('src="https://', $html);

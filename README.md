@@ -337,12 +337,17 @@ make export-html \
     METHOD=GET
 ```
 
-Open the generated file in a browser. The first viewer supports pan/zoom, fit/reset,
-filtering by node type, node selection, direct-connection counts, and inspection of the
-structured metadata introduced by JSON schema `1.1`.
+Open the generated file in a browser. The viewer supports pan/zoom, fit/reset, filtering by
+node type, node selection, direct-connection counts, and inspection of the structured
+metadata introduced by JSON schema `1.1`.
 
-The viewer intentionally stays dependency-free for this first iteration. Branch
-expand/collapse and richer graph navigation are planned as a separate evolution.
+Branches can be collapsed and expanded directly from graph nodes. From the details panel,
+you can focus the selected branch, highlight only its direct connections, jump back to the
+nearest application entry point, or clear the current focus. These controls are especially
+useful when exploring large route and Messenger flows.
+
+The viewer remains self-contained and dependency-free: all navigation runs locally in the
+generated HTML file.
 
 ## JSON export
 
