@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhpFlow\Console;
 
 use PhpFlow\Application\BuildFlowGraph;
+use PhpFlow\Application\CompareGraphExports;
 use PhpFlow\Application\ExtractSubgraph;
 use PhpFlow\Application\FindTableImpact;
 use PhpFlow\Application\FindHttpImpact;
@@ -14,6 +15,7 @@ use PhpFlow\Application\FindExceptionImpact;
 use PhpFlow\Application\ScanProject;
 use PhpFlow\Application\TraverseFlowGraph;
 use PhpFlow\Application\AnalyzeProject;
+use PhpFlow\Console\Command\DiffCommand;
 use PhpFlow\Console\Command\ExportMermaidCommand;
 use PhpFlow\Console\Command\ExportJsonCommand;
 use PhpFlow\Console\Command\ExportHtmlCommand;
@@ -25,6 +27,7 @@ use PhpFlow\Console\Command\ImpactServiceCommand;
 use PhpFlow\Console\Command\ImpactExceptionCommand;
 use PhpFlow\Console\Command\ImpactCommand;
 use PhpFlow\Console\Command\ScanCommand;
+use PhpFlow\Console\GraphDiffRenderer;
 use PhpFlow\Console\ImpactPathRenderer;
 use PhpFlow\Exporter\MermaidExporter;
 use PhpFlow\Exporter\JsonExporter;
@@ -48,6 +51,11 @@ final class Application
             new AnalyzeProject(new \PhpFlow\Ast\ProjectAstAnalyzer(), new MessengerRoutingReader()),
         ));
 
+
+        $this->application->add(new DiffCommand(
+            new CompareGraphExports(),
+            new GraphDiffRenderer(),
+        ));
 
         $this->application->add(new ExportHtmlCommand(
             new ScanProject(new DirectoryScanner()),

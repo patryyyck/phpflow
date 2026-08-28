@@ -327,8 +327,16 @@ A node whose stable ID remains the same but whose exported payload changes is re
 one removed node plus one added node. This makes semantic changes such as `SELECT companies`
 becoming `UPDATE companies` visible instead of silently treating the node as unchanged.
 
-This comparison layer is the basis for the upcoming `phpflow diff before.json after.json`
-command and CI/PR integrations.
+The comparison layer is exposed through the CLI:
+
+```bash
+php bin/phpflow diff before.json after.json
+```
+
+The text report includes a compact category summary followed by added/removed nodes and
+edges. Invalid or unreadable input files fail explicitly instead of producing a partial diff.
+This command is designed for local review first; a machine-readable diff format is planned
+for CI/PR integrations.
 
 ## Interactive HTML export
 

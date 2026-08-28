@@ -158,3 +158,10 @@ export-html:
 			--output="/output/$$(basename "$(HTML_OUTPUT)")"; \
 	fi
 	@echo "Interactive HTML graph written to $(HTML_OUTPUT)"
+
+
+diff:
+	docker compose run --rm \
+		-v "$(shell dirname $(BEFORE)):/before:ro" \
+		-v "$(shell dirname $(AFTER)):/after:ro" \
+		php php bin/phpflow diff "/before/$(shell basename $(BEFORE))" "/after/$(shell basename $(AFTER))"
