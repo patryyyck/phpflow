@@ -315,6 +315,21 @@ The HTTP lookup is case-insensitive and matches against the complete effect labe
 the HTTP method and statically recovered URL. Both table and HTTP impact analysis now share
 the same cycle-safe reverse graph traversal.
 
+## Graph comparison foundation
+
+PHPFlow can compare two versioned graph JSON payloads through its application layer. This
+foundation is intentionally separate from the CLI for now: it detects added and removed
+nodes, changed node payloads, added and removed edges, and produces a compact summary for
+routes, database effects, external HTTP calls, messages, exceptions, services, repositories,
+handlers, and controllers.
+
+A node whose stable ID remains the same but whose exported payload changes is represented as
+one removed node plus one added node. This makes semantic changes such as `SELECT companies`
+becoming `UPDATE companies` visible instead of silently treating the node as unchanged.
+
+This comparison layer is the basis for the upcoming `phpflow diff before.json after.json`
+command and CI/PR integrations.
+
 ## Interactive HTML export
 
 PHPFlow can generate a self-contained interactive HTML viewer. No application server or
