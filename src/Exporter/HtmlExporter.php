@@ -44,7 +44,7 @@ button{border:1px solid #cbd3dd;background:#fff;border-radius:7px;padding:7px 10
 main{position:relative;overflow:hidden}.canvas{width:100%;height:100%;cursor:grab}.canvas.dragging{cursor:grabbing}
 .edge{stroke:#aeb7c4;stroke-width:1.3}.node circle{stroke:#fff;stroke-width:2}.node text{font-size:11px;pointer-events:none;fill:#263244}.node.selected circle{stroke:#111827;stroke-width:4}.node.dimmed{opacity:.18}.edge.highlighted{stroke:#334155;stroke-width:2.6}.edge.dimmed{opacity:.12}.toggle{cursor:pointer}.toggle text{font-size:13px;font-weight:700;fill:#fff;text-anchor:middle;dominant-baseline:central}.nav-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}.nav-actions button{font-size:11px}.hidden-count{font-size:10px;fill:#64748b}
 .empty{padding:16px;color:#687386}.kv{font-size:12px;margin:8px 0}.kv strong{display:block;color:#687386;margin-bottom:2px}.json{white-space:pre-wrap;word-break:break-word;font:11px ui-monospace,SFMono-Regular,Menlo,monospace;background:#f6f8fa;padding:10px;border-radius:7px}
-.legend-title{font-size:12px;font-weight:700;margin:18px 0 5px}.badge{display:inline-block;padding:3px 7px;border-radius:999px;background:#eef2f7;font-size:11px}
+.preset-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}.preset-grid button{font-size:11px;padding:6px}.preset-grid button.active{background:#111827;color:#fff}.compact-option{display:flex;align-items:center;gap:8px;font-size:12px;margin-top:9px}.badge{display:inline-block;padding:3px 7px;border-radius:999px;background:#eef2f7;font-size:11px}
 </style>
 </head>
 <body>
@@ -57,6 +57,15 @@ main{position:relative;overflow:hidden}.canvas{width:100%;height:100%;cursor:gra
 <input id="search" type="search" placeholder="Search route, class, table, URL…" autocomplete="off">
 <div id="search-results" class="search-results"></div>
 </div>
+<div class="legend-title">Explore</div>
+<div class="preset-grid" id="presets">
+<button data-preset="all" class="active">All</button>
+<button data-preset="entry">Entry points</button>
+<button data-preset="database">Database</button>
+<button data-preset="external_http">External HTTP</button>
+<button data-preset="errors">Errors</button>
+</div>
+<label class="compact-option"><input id="hide-technical" type="checkbox">Hide technical nodes</label>
 <div class="legend-title">Node types</div>
 <div id="filters"></div>
 <div class="legend-title">Navigation</div>
@@ -82,7 +91,7 @@ graph.edges.forEach(e=>{
  if(incoming.has(e.target)){incoming.get(e.target).push(e.source);incomingEdges.get(e.target).push(e)}
 });
 const width=()=>svg.clientWidth||900,height=()=>svg.clientHeight||700;
-let scale=1,tx=0,ty=0,drag=null,selected=null,focusRoot=null,directOnly=false,searchQuery='',searchMatches=[];
+let scale=1,tx=0,ty=0,drag=null,selected=null,focusRoot=null,directOnly=false,searchQuery='',searchMatches=[],explorePreset='all',hideTechnical=false;
 const collapsed=new Set(),positions=new Map();
 
 function el(name,attrs={}){const x=document.createElementNS(NS,name);for(const[k,v]of Object.entries(attrs))x.setAttribute(k,v);return x}
@@ -122,8 +131,29 @@ function selectSearchResult(n){
 function syncFilters(){
  document.querySelectorAll('[data-node-type]').forEach(cb=>cb.checked=enabled.has(cb.dataset.nodeType));
 }
+const technicalTypes=new Set(['condition','return_value','continuation','control_branch','loop','loop_control']);
+function presetMatches(n){
+ if(explorePreset==='entry')return Boolean(n.metadata?.entryPoint);
+ if(explorePreset==='database')return n.type==='database';
+ if(explorePreset==='external_http')return n.type==='http_endpoint';
+ if(explorePreset==='errors'){
+  if(n.type==='exception')return true;
+  if(n.type==='http_response'){
+   const status=Number((n.label.match(/\b([45]\d\d)\b/)||[])[1]||0);
+   return status>=400;
+  }
+  return false;
+ }
+ return true;
+}
+function updatePresetButtons(){
+ document.querySelectorAll('[data-preset]').forEach(b=>b.classList.toggle('active',b.dataset.preset===explorePreset));
+}
+function setPreset(name){
+ explorePreset=name;focusRoot=null;directOnly=false;updatePresetButtons();render();requestAnimationFrame(fit);
+}
 function visibleNodes(){
- let ids=new Set(graph.nodes.filter(n=>enabled.has(n.type)).map(n=>n.id));
+ let ids=new Set(graph.nodes.filter(n=>enabled.has(n.type)&&presetMatches(n)&&(!hideTechnical||!technicalTypes.has(n.type))).map(n=>n.id));
  if(focusRoot&&ids.has(focusRoot)){const keep=descendants(focusRoot);keep.add(focusRoot);ids=new Set([...ids].filter(id=>keep.has(id)))}
  const hidden=new Set();
  collapsed.forEach(id=>descendants(id).forEach(child=>hidden.add(child)));
@@ -169,7 +199,7 @@ function render(){
   }
   g.addEventListener('click',ev=>{ev.stopPropagation();selected=n.id;directOnly=false;showDetails(n);render()});viewport.appendChild(g);
  });
- document.getElementById('stats').textContent=`Schema ${graph.schemaVersion} · ${ids.size}/${graph.nodes.length} nodes · ${graph.edges.length} edges${focusRoot?' · focused':''}`;
+ document.getElementById('stats').textContent=`Schema ${graph.schemaVersion} · ${ids.size}/${graph.nodes.length} nodes · ${graph.edges.length} edges${focusRoot?' · focused':''}${explorePreset!=='all'?` · ${explorePreset.replace('_',' ')}`:''}${hideTechnical?' · technical hidden':''}`;
 }
 function showDetails(n){
  const direct=graph.edges.filter(e=>e.source===n.id||e.target===n.id),entry=entryPointFor(n.id),children=(outgoing.get(n.id)||[]).length;
@@ -192,7 +222,9 @@ svg.addEventListener('click',()=>{selected=null;directOnly=false;document.getEle
 const searchInput=document.getElementById('search');
 searchInput.addEventListener('input',()=>{searchQuery=searchInput.value;updateSearch()});
 searchInput.addEventListener('keydown',e=>{if(e.key==='Enter'&&searchMatches.length){e.preventDefault();selectSearchResult(searchMatches[0])}if(e.key==='Escape'){searchInput.value='';searchQuery='';searchMatches=[];document.getElementById('search-results').innerHTML='';render()}});
-document.getElementById('fit').onclick=fit;document.getElementById('reset').onclick=()=>{scale=1;tx=0;ty=0;focusRoot=null;directOnly=false;collapsed.clear();render()};buildFilters();render();requestAnimationFrame(fit);
+document.querySelectorAll('[data-preset]').forEach(button=>button.onclick=()=>setPreset(button.dataset.preset));
+document.getElementById('hide-technical').onchange=e=>{hideTechnical=e.target.checked;render();requestAnimationFrame(fit)};
+document.getElementById('fit').onclick=fit;document.getElementById('reset').onclick=()=>{scale=1;tx=0;ty=0;focusRoot=null;directOnly=false;explorePreset='all';hideTechnical=false;document.getElementById('hide-technical').checked=false;collapsed.clear();enabled.clear();types.forEach(type=>enabled.add(type));syncFilters();updatePresetButtons();render()};buildFilters();render();requestAnimationFrame(fit);
 </script>
 </body>
 </html>

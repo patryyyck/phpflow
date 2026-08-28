@@ -356,6 +356,14 @@ resolved external HTTP URLs remain discoverable even when the HTTP endpoint node
 contains a parameter placeholder. Press Enter to open the first result or Escape to clear
 the search.
 
+
+Exploration presets make large graphs easier to scan without changing the exported graph:
+**Entry points** shows application roots, **Database** shows database effects, **External HTTP**
+shows outbound HTTP endpoints, and **Errors** focuses exceptions plus HTTP 4xx/5xx responses.
+The **Hide technical nodes** toggle removes control-flow-only nodes such as conditions, loop
+controls, continuations, and return values. The existing node-type checkboxes remain available
+and combine with these presets.
+
 The viewer remains self-contained and dependency-free: all navigation runs locally in the
 generated HTML file.
 

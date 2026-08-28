@@ -37,6 +37,12 @@ final class HtmlExporterTest extends TestCase
         self::assertStringContainsString('incomingEdges.get(n.id)', $html);
         self::assertStringContainsString('JSON.stringify(e.context||{})', $html);
         self::assertStringContainsString('function selectSearchResult(n)', $html);
+        self::assertStringContainsString('data-preset="entry"', $html);
+        self::assertStringContainsString('data-preset="database"', $html);
+        self::assertStringContainsString('data-preset="external_http"', $html);
+        self::assertStringContainsString('data-preset="errors"', $html);
+        self::assertStringContainsString('id="hide-technical"', $html);
+        self::assertStringContainsString('function presetMatches(n)', $html);
         self::assertStringContainsString('Focus branch', $html);
         self::assertStringContainsString('Direct only', $html);
         self::assertStringContainsString('Go to entry point', $html);
