@@ -42,7 +42,7 @@ h1{font-size:20px;margin:0 0 4px}.muted{color:#687386;font-size:12px}.toolbar{di
 button{border:1px solid #cbd3dd;background:#fff;border-radius:7px;padding:7px 10px;cursor:pointer}button:hover{background:#f1f4f8}
 .search{margin:14px 0}.search input{width:100%;border:1px solid #cbd3dd;border-radius:7px;padding:8px 10px;font-size:13px}.search-results{margin-top:6px;max-height:220px;overflow:auto}.search-result{display:block;width:100%;text-align:left;border:0;border-radius:5px;padding:7px;background:transparent}.search-result:hover,.search-result.active{background:#eef2f7}.search-result strong{display:block;font-size:12px}.search-result span{display:block;color:#687386;font-size:10px;margin-top:2px}.search-empty{font-size:11px;color:#687386;padding:6px}.node.search-match circle{stroke:#f59e0b;stroke-width:5}.filter{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px}.swatch{width:10px;height:10px;border-radius:50%;display:inline-block}
 main{position:relative;overflow:hidden}.canvas{width:100%;height:100%;cursor:grab}.canvas.dragging{cursor:grabbing}
-.edge{stroke:#aeb7c4;stroke-width:1.3}.node circle{stroke:#fff;stroke-width:2}.node text{font-size:11px;pointer-events:none;fill:#263244}.node.selected circle{stroke:#111827;stroke-width:4}.node.dimmed{opacity:.18}.edge.highlighted{stroke:#334155;stroke-width:2.6}.edge.dimmed{opacity:.12}.toggle{cursor:pointer}.toggle text{font-size:13px;font-weight:700;fill:#fff;text-anchor:middle;dominant-baseline:central}.nav-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}.nav-actions button{font-size:11px}.hidden-count{font-size:10px;fill:#64748b}
+.edge{stroke:#aeb7c4;stroke-width:1.3;fill:none}.node circle{stroke:#fff;stroke-width:2}.node text{font-size:11px;pointer-events:none;fill:#263244}.node.selected circle{stroke:#111827;stroke-width:4}.node.dimmed{opacity:.18}.edge.highlighted{stroke:#334155;stroke-width:2.6}.edge.dimmed{opacity:.12}.toggle{cursor:pointer}.toggle text{font-size:13px;font-weight:700;fill:#fff;text-anchor:middle;dominant-baseline:central}.nav-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}.nav-actions button{font-size:11px}.hidden-count{font-size:10px;fill:#64748b}
 .empty{padding:16px;color:#687386}.kv{font-size:12px;margin:8px 0}.kv strong{display:block;color:#687386;margin-bottom:2px}.json{white-space:pre-wrap;word-break:break-word;font:11px ui-monospace,SFMono-Regular,Menlo,monospace;background:#f6f8fa;padding:10px;border-radius:7px}
 .preset-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}.preset-grid button{font-size:11px;padding:6px}.preset-grid button.active{background:#111827;color:#fff}.compact-option{display:flex;align-items:center;gap:8px;font-size:12px;margin-top:9px}.badge{display:inline-block;padding:3px 7px;border-radius:999px;background:#eef2f7;font-size:11px}
 </style>
@@ -160,16 +160,55 @@ function visibleNodes(){
  ids=new Set([...ids].filter(id=>!hidden.has(id)));
  return ids;
 }
+function stableNodeCompare(a,b){
+ const na=nodeById.get(a),nb=nodeById.get(b);
+ const ka=`${na?.type||''}\u0000${na?.displayLabel||na?.label||''}\u0000${a}`;
+ const kb=`${nb?.type||''}\u0000${nb?.displayLabel||nb?.label||''}\u0000${b}`;
+ return ka.localeCompare(kb);
+}
+function reorderLevel(nodes,neighbors,neighborOrder){
+ return [...nodes].sort((a,b)=>{
+  const score=id=>{
+   const linked=(neighbors.get(id)||[]).filter(x=>neighborOrder.has(x));
+   if(!linked.length)return null;
+   return linked.reduce((sum,x)=>sum+neighborOrder.get(x),0)/linked.length;
+  };
+  const sa=score(a),sb=score(b);
+  if(sa===null&&sb===null)return stableNodeCompare(a,b);
+  if(sa===null)return 1;if(sb===null)return -1;
+  return sa===sb?stableNodeCompare(a,b):sa-sb;
+ });
+}
 function layout(ids){
  positions.clear();
  const incomingCount=new Map([...ids].map(id=>[id,0]));
  graph.edges.forEach(e=>{if(ids.has(e.source)&&ids.has(e.target))incomingCount.set(e.target,(incomingCount.get(e.target)||0)+1)});
- const roots=[...ids].filter(id=>nodeById.get(id)?.metadata?.entryPoint||incomingCount.get(id)===0);
+ let roots=[...ids].filter(id=>nodeById.get(id)?.metadata?.entryPoint||incomingCount.get(id)===0).sort(stableNodeCompare);
+ if(!roots.length)roots=[...ids].sort(stableNodeCompare);
  const depth=new Map(),q=roots.map(id=>[id,0]);
- while(q.length){const[id,d]=q.shift();if(depth.has(id)&&depth.get(id)<=d)continue;depth.set(id,d);for(const target of outgoing.get(id)||[]){if(ids.has(target))q.push([target,d+1])}}
+ while(q.length){
+  const[id,d]=q.shift();if(depth.has(id)&&depth.get(id)<=d)continue;depth.set(id,d);
+  [...(outgoing.get(id)||[])].filter(target=>ids.has(target)).sort(stableNodeCompare).forEach(target=>q.push([target,d+1]));
+ }
  ids.forEach(id=>{if(!depth.has(id))depth.set(id,0)});
  const levels=new Map();ids.forEach(id=>{const d=depth.get(id);if(!levels.has(d))levels.set(d,[]);levels.get(d).push(id)});
- [...levels.entries()].sort((a,b)=>a[0]-b[0]).forEach(([d,nodes])=>nodes.forEach((id,i)=>positions.set(id,{x:130+d*245,y:90+i*88})));
+ levels.forEach(nodes=>nodes.sort(stableNodeCompare));
+ const levelKeys=[...levels.keys()].sort((a,b)=>a-b);
+ for(let sweep=0;sweep<4;sweep++){
+  for(let i=1;i<levelKeys.length;i++){
+   const prev=levels.get(levelKeys[i-1]),order=new Map(prev.map((id,index)=>[id,index]));
+   levels.set(levelKeys[i],reorderLevel(levels.get(levelKeys[i]),incoming,order));
+  }
+  for(let i=levelKeys.length-2;i>=0;i--){
+   const next=levels.get(levelKeys[i+1]),order=new Map(next.map((id,index)=>[id,index]));
+   levels.set(levelKeys[i],reorderLevel(levels.get(levelKeys[i]),outgoing,order));
+  }
+ }
+ const maxCount=Math.max(1,...levelKeys.map(d=>levels.get(d).length)),rowGap=maxCount>18?68:maxCount>10?76:88;
+ levelKeys.forEach(d=>{
+  const nodes=levels.get(d),offset=(maxCount-nodes.length)*rowGap/2;
+  nodes.forEach((id,i)=>positions.set(id,{x:130+d*255,y:90+offset+i*rowGap}));
+ });
 }
 function render(){
  const ids=visibleNodes();layout(ids);svg.innerHTML='';
@@ -179,7 +218,8 @@ function render(){
  graph.edges.filter(e=>ids.has(e.source)&&ids.has(e.target)).forEach(e=>{
   const a=positions.get(e.source),b=positions.get(e.target);if(!a||!b)return;
   let cls='edge';if(directOnly&&selected)cls+=(highlight.has(e.source)&&highlight.has(e.target))?' highlighted':' dimmed';
-  viewport.appendChild(el('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,class:cls}));
+  const startX=a.x+18,endX=b.x-18,midX=(startX+endX)/2;
+  viewport.appendChild(el('path',{d:`M ${startX} ${a.y} C ${midX} ${a.y}, ${midX} ${b.y}, ${endX} ${b.y}`,class:cls}));
  });
  graph.nodes.filter(n=>ids.has(n.id)).forEach(n=>{
   const p=positions.get(n.id);let cls=`node${selected===n.id?' selected':''}`;

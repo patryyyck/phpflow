@@ -364,6 +364,13 @@ The **Hide technical nodes** toggle removes control-flow-only nodes such as cond
 controls, continuations, and return values. The existing node-type checkboxes remain available
 and combine with these presets.
 
+
+The graph layout is hierarchical and deterministic. Nodes inside each depth level are reordered
+with repeated barycentric passes against their parents and children, which keeps related branches
+closer together and reduces edge crossings on large flows. Levels are vertically balanced and
+use adaptive spacing for dense graphs. Connections are drawn as smooth horizontal curves instead
+of straight diagonals, making long branches easier to follow.
+
 The viewer remains self-contained and dependency-free: all navigation runs locally in the
 generated HTML file.
 
