@@ -31,6 +31,12 @@ final class HtmlExporterTest extends TestCase
         self::assertStringContainsString('Node details', $html);
         self::assertStringContainsString('displayLabel', $html);
         self::assertStringContainsString('Canonical label', $html);
+        self::assertStringContainsString('id="search"', $html);
+        self::assertStringContainsString('Search route, class, table, URL', $html);
+        self::assertStringContainsString('function searchableText(n)', $html);
+        self::assertStringContainsString('incomingEdges.get(n.id)', $html);
+        self::assertStringContainsString('JSON.stringify(e.context||{})', $html);
+        self::assertStringContainsString('function selectSearchResult(n)', $html);
         self::assertStringContainsString('Focus branch', $html);
         self::assertStringContainsString('Direct only', $html);
         self::assertStringContainsString('Go to entry point', $html);

@@ -346,6 +346,16 @@ you can focus the selected branch, highlight only its direct connections, jump b
 nearest application entry point, or clear the current focus. These controls are especially
 useful when exploring large route and Messenger flows.
 
+
+The viewer also includes full-graph search. Search by route, short or fully-qualified class
+name, method, table, HTTP URL, message, exception, node type, or any structured metadata.
+Matching nodes are highlighted in the graph; selecting a result automatically reveals
+collapsed ancestors, restores a filtered node type when necessary, centers the node, and
+opens its details. Search also indexes incoming and outgoing edge context, so dynamically
+resolved external HTTP URLs remain discoverable even when the HTTP endpoint node itself
+contains a parameter placeholder. Press Enter to open the first result or Escape to clear
+the search.
+
 The viewer remains self-contained and dependency-free: all navigation runs locally in the
 generated HTML file.
 
