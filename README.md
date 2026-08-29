@@ -71,6 +71,10 @@ PHPFlow currently supports:
 - human-readable flow trees and compact `--summary` output;
 - complete or route-scoped Mermaid graph export.
 
+The detailed `v0.1` analysis contract, including partial and intentionally unsupported
+patterns, is documented in [docs/SUPPORT.md](docs/SUPPORT.md).
+
+
 ## Requirements
 
 The recommended development setup requires:
@@ -508,21 +512,16 @@ PHPFlow deliberately prefers an unresolved or unknown result over guessing.
 
 ## Limitations
 
-PHPFlow is a static analyzer, not a PHP runtime. In particular:
+PHPFlow is intentionally conservative: it parses source/configuration statically and never
+executes the target application. Dynamic class/method selection, reflection, runtime-generated
+container/framework configuration, and values that only exist at runtime may therefore remain
+unresolved.
 
-- dynamic class names, dynamic method names, reflection, and runtime container manipulation
-  may not be resolvable;
-- URLs, SQL, and table names assembled from values that cannot be recovered statically may
-  remain unknown;
-- service resolution is intentionally conservative when multiple implementations are
-  possible and configuration does not disambiguate them;
-- reachability analysis models supported syntax conservatively and is not a general theorem
-  prover;
-- framework configuration generated dynamically at runtime may not be understood;
-- PHPFlow does not connect to databases, message brokers, or external HTTP services.
+See the [v0.1 support matrix](docs/SUPPORT.md) for the authoritative Supported / Partial /
+Not supported contract across Symfony, Messenger, Doctrine/DBAL, HTTP, effects and control flow.
 
-A missing edge therefore means "PHPFlow could not prove this relationship", not necessarily
-"this relationship can never occur at runtime".
+A missing edge means **"PHPFlow could not prove this relationship"**, not
+**"this relationship can never occur at runtime"**.
 
 ## Development
 
