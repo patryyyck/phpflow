@@ -39,9 +39,10 @@ final readonly class HtmlExporter
 *{box-sizing:border-box}body{margin:0;height:100vh;overflow:hidden}.app{display:grid;grid-template-columns:280px 1fr 340px;height:100vh}
 aside{background:#fff;border-right:1px solid #dfe4ea;padding:18px;overflow:auto}.details{border-right:0;border-left:1px solid #dfe4ea}
 h1{font-size:20px;margin:0 0 4px}.muted{color:#687386;font-size:12px}.toolbar{display:flex;gap:8px;margin:14px 0}
-button{border:1px solid #cbd3dd;background:#fff;border-radius:7px;padding:7px 10px;cursor:pointer}button:hover{background:#f1f4f8}
+button{border:1px solid #cbd3dd;background:#fff;border-radius:7px;padding:7px 10px;cursor:pointer}button:hover{background:#f1f4f8}button.active{background:#111827;color:#fff;border-color:#111827}
 .search{margin:14px 0}.search input{width:100%;border:1px solid #cbd3dd;border-radius:7px;padding:8px 10px;font-size:13px}.search-results{margin-top:6px;max-height:220px;overflow:auto}.search-result{display:block;width:100%;text-align:left;border:0;border-radius:5px;padding:7px;background:transparent}.search-result:hover,.search-result.active{background:#eef2f7}.search-result strong{display:block;font-size:12px}.search-result span{display:block;color:#687386;font-size:10px;margin-top:2px}.search-empty{font-size:11px;color:#687386;padding:6px}.node.search-match circle{stroke:#f59e0b;stroke-width:5}.filter{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px}.swatch{width:10px;height:10px;border-radius:50%;display:inline-block}
 main{position:relative;overflow:hidden}.canvas{width:100%;height:100%;cursor:grab}.canvas.dragging{cursor:grabbing}
+.minimap-wrap{position:absolute;right:18px;bottom:18px;width:240px;height:165px;background:#fff;border:2px solid #94a3b8;border-radius:10px;box-shadow:0 8px 24px rgba(15,23,42,.22);overflow:hidden;z-index:20}.minimap{width:100%;height:100%;cursor:crosshair}.minimap-node{fill:#94a3b8}.minimap-node.entry{fill:#2563eb}.minimap-edge{stroke:#cbd5e1;stroke-width:1;fill:none}.minimap-viewport{fill:rgba(37,99,235,.08);stroke:#2563eb;stroke-width:1.5;pointer-events:none}.minimap-label{position:absolute;top:6px;left:8px;font-size:10px;font-weight:700;color:#64748b;pointer-events:none}.minimap-wrap.hidden{display:none}
 .edge{stroke:#aeb7c4;stroke-width:1.35;fill:none;marker-end:url(#arrow)}.edge-label{font-size:9px;fill:#64748b;pointer-events:none;paint-order:stroke;stroke:#fff;stroke-width:3;stroke-linejoin:round}.node circle{stroke:#fff;stroke-width:2;filter:drop-shadow(0 1px 2px rgba(15,23,42,.16))}.node text{font-size:11px;pointer-events:none;fill:#263244}.node.selected circle{stroke:#111827;stroke-width:4}.node.dimmed{opacity:.18}.edge.highlighted{stroke:#334155;stroke-width:2.6}.edge.path-highlighted{stroke:#2563eb;stroke-width:4;opacity:1;marker-end:url(#arrow-path)}.edge.dimmed{opacity:.08}.edge-label.dimmed{opacity:.08}.edge-label.highlighted{font-weight:700;fill:#334155}.edge-label.path-highlighted{font-weight:800;fill:#1d4ed8}.node.path-highlighted circle{stroke:#2563eb;stroke-width:5;filter:drop-shadow(0 0 4px rgba(37,99,235,.45))}.node.path-highlighted text{font-weight:700;fill:#1d4ed8}.nav-actions button.active{background:#111827;color:#fff}.toggle{cursor:pointer}.toggle text{font-size:13px;font-weight:700;fill:#fff;text-anchor:middle;dominant-baseline:central}.nav-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}.nav-actions button{font-size:11px}.hidden-count{font-size:10px;fill:#64748b}
 .empty{padding:16px;color:#687386}.kv{font-size:12px;margin:8px 0}.kv strong{display:block;color:#687386;margin-bottom:2px}.json{white-space:pre-wrap;word-break:break-word;font:11px ui-monospace,SFMono-Regular,Menlo,monospace;background:#f6f8fa;padding:10px;border-radius:7px}
 .preset-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}.preset-grid button{font-size:11px;padding:6px}.preset-grid button.active{background:#111827;color:#fff}.compact-option{display:flex;align-items:center;gap:8px;font-size:12px;margin-top:9px}.badge{display:inline-block;padding:3px 7px;border-radius:999px;background:#eef2f7;font-size:11px}
@@ -52,7 +53,7 @@ main{position:relative;overflow:hidden}.canvas{width:100%;height:100%;cursor:gra
 <aside>
 <h1>PHPFlow</h1>
 <div class="muted" id="stats"></div>
-<div class="toolbar"><button id="fit">Fit graph</button><button id="reset">Reset</button></div>
+<div class="toolbar"><button id="fit">Fit graph</button><button id="reset">Reset</button><button id="toggle-minimap" class="active">Minimap on</button></div>
 <div class="search">
 <input id="search" type="search" placeholder="Search route, class, table, URL…" autocomplete="off">
 <div id="search-results" class="search-results"></div>
@@ -71,7 +72,7 @@ main{position:relative;overflow:hidden}.canvas{width:100%;height:100%;cursor:gra
 <div class="legend-title">Navigation</div>
 <div class="muted">Drag to pan and use the mouse wheel to zoom. Click a node to inspect it. Database, HTTP and Errors presets keep upstream paths visible. Search always reveals its selected result. Use +/− to collapse or expand descendants.</div>
 </aside>
-<main><svg class="canvas" id="canvas"></svg></main>
+<main><svg class="canvas" id="canvas"></svg><div class="minimap-wrap" id="minimap-wrap"><div class="minimap-label" id="minimap-label">Overview</div><svg class="minimap" id="minimap"></svg></div></main>
 <aside class="details">
 <h1>Node details</h1>
 <div id="details" class="empty">Select a node in the graph.</div>
@@ -80,7 +81,7 @@ main{position:relative;overflow:hidden}.canvas{width:100%;height:100%;cursor:gra
 <script type="application/json" id="phpflow-data">__PHPFLOW_GRAPH__</script>
 <script>
 const graph=JSON.parse(document.getElementById('phpflow-data').textContent);
-const svg=document.getElementById('canvas'),NS='http://www.w3.org/2000/svg';
+const svg=document.getElementById('canvas'),minimap=document.getElementById('minimap'),NS='http://www.w3.org/2000/svg';
 const colors={route:'#2563eb',controller:'#7c3aed',service:'#0891b2',repository:'#0f766e',handler:'#9333ea',message:'#c026d3',database:'#16a34a',http_endpoint:'#ea580c',exception:'#dc2626',condition:'#ca8a04',return:'#64748b',loop:'#a16207',branch:'#a16207'};
 const types=[...new Set(graph.nodes.map(n=>n.type))].sort(),enabled=new Set(types);
 const nodeById=new Map(graph.nodes.map(n=>[n.id,n]));
@@ -91,41 +92,53 @@ graph.edges.forEach(e=>{
  if(incoming.has(e.target)){incoming.get(e.target).push(e.source);incomingEdges.get(e.target).push(e)}
 });
 const width=()=>svg.clientWidth||900,height=()=>svg.clientHeight||700;
-let scale=1,tx=0,ty=0,drag=null,selected=null,focusRoot=null,directOnly=false,pathOnly=false,searchQuery='',searchMatches=[],explorePreset='all',hideTechnical=false;
+let scale=1,tx=0,ty=0,drag=null,selected=null,focusRoot=null,directOnly=false,pathOnly=false,searchQuery='',searchMatches=[],explorePreset='all',hideTechnical=false,minimapState=null;
 const collapsed=new Set(),positions=new Map();
 
 function el(name,attrs={}){const x=document.createElementNS(NS,name);for(const[k,v]of Object.entries(attrs))x.setAttribute(k,v);return x}
 function descendants(id){const found=new Set(),q=[...(outgoing.get(id)||[])];while(q.length){const x=q.shift();if(found.has(x)||x===id)continue;found.add(x);q.push(...(outgoing.get(x)||[]))}return found}
 function ancestors(id){const found=new Set(),q=[...(incoming.get(id)||[])];while(q.length){const x=q.shift();if(found.has(x)||x===id)continue;found.add(x);q.push(...(incoming.get(x)||[]))}return found}
-function entryPointFor(id){
- const candidates=[id,...ancestors(id)].map(x=>nodeById.get(x)).filter(Boolean).filter(n=>n.metadata?.entryPoint);
- if(!candidates.length)return null;
- const distance=new Map([[id,0]]),q=[id];while(q.length){const x=q.shift(),d=distance.get(x);for(const parent of incoming.get(x)||[]){if(!distance.has(parent)){distance.set(parent,d+1);q.push(parent)}}}
- candidates.sort((a,b)=>(distance.get(a.id)??9999)-(distance.get(b.id)??9999));return candidates[0];
-}
 function edgeKey(e){return `${e.source}\u0000${e.target}\u0000${e.type||''}\u0000${e.label||''}\u0000${e.order??''}`}
+function isEntryCandidate(id){
+ const n=nodeById.get(id);if(!n)return false;
+ if(n.metadata?.entryPoint)return true;
+ if((incoming.get(id)||[]).length===0)return true;
+ return false;
+}
 function pathFromEntryPoint(id){
- const entry=entryPointFor(id);if(!entry)return null;
- if(entry.id===id)return {entry,nodes:new Set([id]),edgeKeys:new Set()};
- const previous=new Map(),previousEdge=new Map(),seen=new Set([entry.id]),q=[entry.id];
+ if(!nodeById.has(id))return null;
+ if(isEntryCandidate(id))return {entry:nodeById.get(id),nodes:new Set([id]),edgeKeys:new Set()};
+ const nextTowardTarget=new Map(),edgeTowardTarget=new Map(),seen=new Set([id]),q=[id];
+ let fallback=null;
  while(q.length){
-  const current=q.shift();
-  for(const edge of outgoingEdges.get(current)||[]){
-   if(seen.has(edge.target))continue;
-   seen.add(edge.target);previous.set(edge.target,current);previousEdge.set(edge.target,edge);
-   if(edge.target===id){
-    const nodes=new Set([id]),edgeKeys=new Set();let cursor=id;
-    while(cursor!==entry.id){
-     const edgeToCursor=previousEdge.get(cursor);if(edgeToCursor)edgeKeys.add(edgeKey(edgeToCursor));
-     cursor=previous.get(cursor);if(cursor===undefined)return null;nodes.add(cursor);
-    }
-    return {entry,nodes,edgeKeys};
+  const current=q.shift(),node=nodeById.get(current);
+  if(current!==id&&(node?.type==='route'||node?.type==='message')&&!fallback)fallback=current;
+  if(current!==id&&isEntryCandidate(current)){
+   const nodes=new Set([current]),edgeKeys=new Set();let cursor=current;
+   while(cursor!==id){
+    const edge=edgeTowardTarget.get(cursor),next=nextTowardTarget.get(cursor);
+    if(!edge||next===undefined)return null;
+    edgeKeys.add(edgeKey(edge));cursor=next;nodes.add(cursor);
    }
-   q.push(edge.target);
+   return {entry:nodeById.get(current),nodes,edgeKeys};
   }
+  for(const edge of incomingEdges.get(current)||[]){
+   const parent=edge.source;if(seen.has(parent))continue;
+   seen.add(parent);nextTowardTarget.set(parent,current);edgeTowardTarget.set(parent,edge);q.push(parent);
+  }
+ }
+ if(fallback){
+  const nodes=new Set([fallback]),edgeKeys=new Set();let cursor=fallback;
+  while(cursor!==id){
+   const edge=edgeTowardTarget.get(cursor),next=nextTowardTarget.get(cursor);
+   if(!edge||next===undefined)return null;
+   edgeKeys.add(edgeKey(edge));cursor=next;nodes.add(cursor);
+  }
+  return {entry:nodeById.get(fallback),nodes,edgeKeys};
  }
  return null;
 }
+function entryPointFor(id){return pathFromEntryPoint(id)?.entry||null}
 function searchableText(n){
  const edgeData=[
   ...(incomingEdges.get(n.id)||[]),
@@ -149,7 +162,7 @@ function revealNode(id){
  const n=nodeById.get(id);if(n&&!enabled.has(n.type)){enabled.add(n.type);syncFilters()}
 }
 function selectSearchResult(n){
- revealNode(n.id);selected=n.id;pathOnly=Boolean(entryPointFor(n.id));showDetails(n);render();centerOn(n.id);
+ revealNode(n.id);selected=n.id;pathOnly=Boolean(pathFromEntryPoint(n.id));showDetails(n);render();centerOn(n.id);
  const buttons=document.querySelectorAll('.search-result');buttons.forEach(b=>b.classList.toggle('active',searchMatches[Number(b.dataset.searchIndex)]?.id===n.id));
 }
 function syncFilters(){
@@ -244,6 +257,46 @@ function layout(ids){
   nodes.forEach((id,i)=>positions.set(id,{x:130+d*255,y:90+offset+i*rowGap}));
  });
 }
+function graphBounds(){
+ if(!positions.size)return null;
+ let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+ positions.forEach(p=>{if(p.x<minX)minX=p.x;if(p.x>maxX)maxX=p.x;if(p.y<minY)minY=p.y;if(p.y>maxY)maxY=p.y});
+ return {minX:minX-45,maxX:maxX+120,minY:minY-45,maxY:maxY+45};
+}
+function renderMinimap(ids){
+ minimap.innerHTML='';const bounds=graphBounds();if(!bounds){minimapState=null;return}
+ const mw=minimap.clientWidth||240,mh=minimap.clientHeight||165,pad=12;
+ const gw=Math.max(1,bounds.maxX-bounds.minX),gh=Math.max(1,bounds.maxY-bounds.minY);
+ const miniScale=Math.min((mw-pad*2)/gw,(mh-pad*2)/gh);
+ const ox=(mw-gw*miniScale)/2-bounds.minX*miniScale,oy=(mh-gh*miniScale)/2-bounds.minY*miniScale;
+ minimapState={bounds,miniScale,ox,oy,mw,mh};
+ const fragment=document.createDocumentFragment(),visible=[...ids];
+ document.getElementById('minimap-label').textContent=`Overview · ${visible.length} nodes`;
+ const maxNodes=900,nodeStep=Math.max(1,Math.ceil(visible.length/maxNodes));
+ const sampledIds=new Set();
+ for(let i=0;i<visible.length;i+=nodeStep)sampledIds.add(visible[i]);
+ graph.nodes.forEach(n=>{if(ids.has(n.id)&&n.metadata?.entryPoint)sampledIds.add(n.id)});
+ let edgeCount=0,maxEdges=1200;
+ for(const e of graph.edges){
+  if(edgeCount>=maxEdges)break;
+  if(!ids.has(e.source)||!ids.has(e.target))continue;
+  if(!sampledIds.has(e.source)&&!sampledIds.has(e.target))continue;
+  const a=positions.get(e.source),b=positions.get(e.target);if(!a||!b)continue;
+  fragment.appendChild(el('line',{x1:a.x*miniScale+ox,y1:a.y*miniScale+oy,x2:b.x*miniScale+ox,y2:b.y*miniScale+oy,class:'minimap-edge'}));edgeCount++;
+ }
+ sampledIds.forEach(id=>{
+  const n=nodeById.get(id),p=positions.get(id);if(!n||!p)return;
+  fragment.appendChild(el('circle',{cx:p.x*miniScale+ox,cy:p.y*miniScale+oy,r:n.metadata?.entryPoint?3.4:2.2,class:`minimap-node${n.metadata?.entryPoint?' entry':''}`}));
+ });
+ const left=-tx/scale,top=-ty/scale,right=left+width()/scale,bottom=top+height()/scale;
+ fragment.appendChild(el('rect',{x:left*miniScale+ox,y:top*miniScale+oy,width:Math.max(8,(right-left)*miniScale),height:Math.max(8,(bottom-top)*miniScale),class:'minimap-viewport'}));
+ minimap.appendChild(fragment);
+}
+function navigateFromMinimap(clientX,clientY){
+ if(!minimapState)return;const rect=minimap.getBoundingClientRect();
+ const gx=(clientX-rect.left-minimapState.ox)/minimapState.miniScale,gy=(clientY-rect.top-minimapState.oy)/minimapState.miniScale;
+ tx=width()/2-gx*scale;ty=height()/2-gy*scale;render();
+}
 function render(){
  const ids=visibleNodes();layout(ids);svg.innerHTML='';
  const defs=el('defs'),marker=el('marker',{id:'arrow',viewBox:'0 0 10 10',refX:'9',refY:'5',markerWidth:'6',markerHeight:'6',orient:'auto-start-reverse'});
@@ -283,8 +336,9 @@ function render(){
    g.appendChild(toggle);
    if(collapsed.has(n.id)){const count=el('text',{x:-39,y:25,class:'hidden-count'});count.textContent=`${descendants(n.id).size} hidden`;g.appendChild(count)}
   }
-  g.addEventListener('click',ev=>{ev.stopPropagation();selected=n.id;directOnly=false;pathOnly=Boolean(entryPointFor(n.id));showDetails(n);render()});viewport.appendChild(g);
+  g.addEventListener('click',ev=>{ev.stopPropagation();selected=n.id;directOnly=false;pathOnly=Boolean(pathFromEntryPoint(n.id));showDetails(n);render()});viewport.appendChild(g);
  });
+ renderMinimap(ids);
  document.getElementById('stats').textContent=`Schema ${graph.schemaVersion} · ${ids.size}/${graph.nodes.length} nodes · ${graph.edges.length} edges${focusRoot?' · focused':''}${pathOnly?' · entry path':''}${explorePreset!=='all'?` · ${explorePreset.replace('_',' ')}`:''}${hideTechnical?' · technical hidden':''}`;
 }
 function showDetails(n){
@@ -310,16 +364,18 @@ function showDetails(n){
 function centerOn(id){const p=positions.get(id);if(!p)return;tx=width()/2-p.x*scale;ty=height()/2-p.y*scale;render()}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function buildFilters(){const box=document.getElementById('filters');types.forEach(type=>{const row=document.createElement('label');row.className='filter';const cb=document.createElement('input');cb.type='checkbox';cb.checked=true;cb.dataset.nodeType=type;cb.onchange=()=>{cb.checked?enabled.add(type):enabled.delete(type);render()};const sw=document.createElement('span');sw.className='swatch';sw.style.background=colors[type]||'#475569';row.append(cb,sw,document.createTextNode(type));box.appendChild(row)})}
-function fit(){const ids=visibleNodes();layout(ids);const ps=[...positions.values()];if(!ps.length)return;const xs=ps.map(p=>p.x),ys=ps.map(p=>p.y),minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);scale=Math.min((width()-100)/Math.max(1,maxX-minX+100),(height()-100)/Math.max(1,maxY-minY+100),1.3);tx=(width()-(minX+maxX)*scale)/2;ty=(height()-(minY+maxY)*scale)/2;render()}
+function fit(){const ids=visibleNodes();layout(ids);const b=graphBounds();if(!b)return;scale=Math.min((width()-100)/Math.max(1,b.maxX-b.minX),(height()-100)/Math.max(1,b.maxY-b.minY),1.3);tx=(width()-(b.minX+b.maxX)*scale)/2;ty=(height()-(b.minY+b.maxY)*scale)/2;render()}
 svg.addEventListener('mousedown',e=>drag={x:e.clientX-tx,y:e.clientY-ty});window.addEventListener('mousemove',e=>{if(!drag)return;tx=e.clientX-drag.x;ty=e.clientY-drag.y;svg.classList.add('dragging');render()});window.addEventListener('mouseup',()=>{drag=null;svg.classList.remove('dragging')});
 svg.addEventListener('wheel',e=>{e.preventDefault();const old=scale;scale=Math.max(.2,Math.min(3,scale*(e.deltaY<0?1.12:.89)));tx=e.offsetX-(e.offsetX-tx)*(scale/old);ty=e.offsetY-(e.offsetY-ty)*(scale/old);render()},{passive:false});
+minimap.addEventListener('mousedown',e=>{e.preventDefault();e.stopPropagation();navigateFromMinimap(e.clientX,e.clientY)});
+minimap.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();navigateFromMinimap(e.clientX,e.clientY)});
 svg.addEventListener('click',()=>{selected=null;directOnly=false;pathOnly=false;document.getElementById('details').innerHTML='<div class="empty">Select a node in the graph.</div>';render()});
 const searchInput=document.getElementById('search');
 searchInput.addEventListener('input',()=>{searchQuery=searchInput.value;updateSearch()});
 searchInput.addEventListener('keydown',e=>{if(e.key==='Enter'&&searchMatches.length){e.preventDefault();selectSearchResult(searchMatches[0])}if(e.key==='Escape'){searchInput.value='';searchQuery='';searchMatches=[];document.getElementById('search-results').innerHTML='';render()}});
 document.querySelectorAll('[data-preset]').forEach(button=>button.onclick=()=>setPreset(button.dataset.preset));
 document.getElementById('hide-technical').onchange=e=>{hideTechnical=e.target.checked;render();requestAnimationFrame(fit)};
-document.getElementById('fit').onclick=fit;document.getElementById('reset').onclick=()=>{scale=1;tx=0;ty=0;focusRoot=null;directOnly=false;pathOnly=false;explorePreset='all';hideTechnical=false;document.getElementById('hide-technical').checked=false;collapsed.clear();enabled.clear();types.forEach(type=>enabled.add(type));syncFilters();updatePresetButtons();render()};buildFilters();render();requestAnimationFrame(fit);
+document.getElementById('fit').onclick=fit;document.getElementById('toggle-minimap').onclick=()=>{const wrap=document.getElementById('minimap-wrap'),button=document.getElementById('toggle-minimap'),hidden=wrap.classList.toggle('hidden');button.classList.toggle('active',!hidden);button.textContent=hidden?'Minimap off':'Minimap on'};document.getElementById('reset').onclick=()=>{scale=1;tx=0;ty=0;focusRoot=null;directOnly=false;pathOnly=false;explorePreset='all';hideTechnical=false;document.getElementById('hide-technical').checked=false;collapsed.clear();enabled.clear();types.forEach(type=>enabled.add(type));syncFilters();updatePresetButtons();render()};buildFilters();render();requestAnimationFrame(fit);
 </script>
 </body>
 </html>

@@ -624,3 +624,20 @@ Selecting a node in the interactive HTML viewer now automatically enables **Entr
 PHPFlow highlights the shortest directed path from the nearest entry point
 to the selected node and dims unrelated nodes and edges. This makes it easier to understand
 how a route or message reaches a service, database effect, external HTTP call, or error.
+
+
+### Interactive minimap
+
+The self-contained HTML viewer includes a compact minimap in the lower-right corner. It mirrors the currently visible graph, marks entry points, displays the current viewport, and supports click-to-navigate for fast movement across large graphs. The minimap can be shown or hidden from the viewer toolbar.
+
+
+The entry-path highlighter uses a multi-source breadth-first traversal from all graph entry points, making path selection robust on large graphs with shared branches and cycles.
+
+
+### Large-graph viewer resilience
+
+Entry-path highlighting now searches backward from the selected node to the nearest entry
+candidate in the same connected upstream component, instead of scanning forward from global
+entry points. The minimap uses bounded sampling (nodes and edges), document fragments, and
+iterative bounds calculations so large graphs do not duplicate the full SVG workload or hit
+JavaScript argument limits while computing extents.
