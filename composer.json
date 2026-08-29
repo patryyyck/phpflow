@@ -1,6 +1,15 @@
 {
   "name": "phpflow/phpflow",
   "description": "Static flow analyzer for PHP applications.",
+  "keywords": [
+    "static-analysis",
+    "symfony",
+    "messenger",
+    "doctrine",
+    "architecture",
+    "dependency-graph",
+    "impact-analysis"
+  ],
   "type": "project",
   "license": "MIT",
   "require": {

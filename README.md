@@ -77,6 +77,9 @@ patterns, is documented in [docs/SUPPORT.md](docs/SUPPORT.md).
 The stable `v0.1` command names, exit statuses and machine-readable format versions are
 documented in [docs/CLI.md](docs/CLI.md).
 
+Release history is documented in [CHANGELOG.md](CHANGELOG.md). Maintainers can use
+[RELEASE.md](RELEASE.md) for the `v0.1.0` publication checklist.
+
 
 ## Requirements
 
@@ -92,7 +95,7 @@ The PHP package itself requires PHP 8.4.
 Clone the repository and build the development container:
 
 ```bash
-git clone git@github.com:YOUR_GITHUB_USERNAME/phpflow.git
+git clone <repository-url>
 cd phpflow
 
 make build
@@ -549,9 +552,6 @@ make export-mermaid PROJECT_PATH=/path/to/project
 
 The repository includes a GitHub Actions workflow that installs Composer dependencies and
 runs the PHPUnit suite on pushes and pull requests.
-
-After the repository is published, replace `YOUR_GITHUB_USERNAME` in the clone example and
-badge URL with the actual GitHub account name.
 
 ## License
 
