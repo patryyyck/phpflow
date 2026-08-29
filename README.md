@@ -538,6 +538,13 @@ docker compose run --rm php composer install
 make test
 ```
 
+Release-contract checks also run inside the PHP container, so no host PHP installation is required:
+
+```bash
+make release-check
+docker compose run --rm php php bin/phpflow --version
+```
+
 Useful commands:
 
 ```bash
@@ -550,8 +557,13 @@ make export-mermaid PROJECT_PATH=/path/to/project
 
 ## Continuous integration
 
-The repository includes a GitHub Actions workflow that installs Composer dependencies and
-runs the PHPUnit suite on pushes and pull requests.
+The project test suite is run with:
+
+```bash
+make test
+```
+
+CI providers can use the same command after installing Composer dependencies.
 
 ## License
 

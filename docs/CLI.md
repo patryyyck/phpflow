@@ -3,8 +3,11 @@
 The public CLI version for the first release is **PHPFlow 0.1.0**.
 
 ```bash
-php bin/phpflow --version
+docker compose run --rm php php bin/phpflow --version
 ```
+
+If PHP 8.4 and Composer dependencies are installed directly on the host, the equivalent
+command is `php bin/phpflow --version`.
 
 Symfony Console renders the version from `PhpFlow\Version::VERSION`. For `v0.1.0`, the public
 command names below are considered stable.
@@ -54,9 +57,9 @@ Graph exports with different schema versions cannot be compared by `diff`.
 Use Symfony Console's normal help surfaces:
 
 ```bash
-php bin/phpflow list
-php bin/phpflow help impact
-php bin/phpflow export:json --help
+docker compose run --rm php php bin/phpflow list
+docker compose run --rm php php bin/phpflow help impact
+docker compose run --rm php php bin/phpflow export:json --help
 ```
 
 Every PHPFlow command has a non-empty command description and typed argument/option help.

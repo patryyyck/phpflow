@@ -180,3 +180,6 @@ diff:
 		"/after/$(shell basename $(AFTER))" \
 		--format="$(FORMAT)" \
 		$(if $(OUTPUT),--output="/phpflow-output/$(shell basename $(OUTPUT))",)
+
+release-check:
+	docker compose run --rm php php tools/release-check.php

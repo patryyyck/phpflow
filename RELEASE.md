@@ -6,6 +6,7 @@ This checklist is for publishing PHPFlow `v0.1.0`.
 
 - [ ] Start from a clean `main` branch containing the validated release commits.
 - [ ] Run `make test` and verify the full PHPUnit suite passes.
+- [ ] Run `make release-check` and verify the deterministic release contract checks pass.
 - [ ] Run the representative real-project smoke tests used during development:
   - [ ] `scan`
   - [ ] `inspect`
@@ -15,7 +16,7 @@ This checklist is for publishing PHPFlow `v0.1.0`.
   - [ ] `diff`
 - [ ] Open a generated HTML graph from a representative large project and verify search,
       minimap, lanes and path highlighting.
-- [ ] Verify `php bin/phpflow --version` reports `PHPFlow 0.1.0`.
+- [ ] Verify `docker compose run --rm php php bin/phpflow --version` reports `PHPFlow 0.1.0`.
 - [ ] Verify `php bin/phpflow list` exposes the documented v0.1 commands.
 - [ ] Verify graph JSON reports schema `1.2`.
 - [ ] Verify impact JSON reports schema `1.0`.
@@ -58,5 +59,5 @@ the exact v0.1 boundaries.
 
 - [ ] Confirm the tag and GitHub release are visible publicly.
 - [ ] Confirm installation from a fresh clone works.
-- [ ] Re-run `php bin/phpflow --version` from that fresh clone.
+- [ ] Re-run `docker compose run --rm php php bin/phpflow --version` from that fresh clone.
 - [ ] Create the next development version only in a subsequent commit.
