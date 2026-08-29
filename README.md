@@ -649,3 +649,11 @@ The HTML viewer now makes asynchronous hand-offs explicit. Message and handler n
 a dedicated magenta treatment, while dispatch/transport/message boundary edges are rendered
 as dashed magenta arrows. The sidebar legend explains the convention, and the minimap also
 marks async nodes so async regions remain recognizable in large graphs.
+
+
+### Functional lanes
+
+The HTML viewer can now overlay lightweight functional lanes to make large graphs easier to
+scan. Nodes are grouped into Entry / HTTP, Application, Async / Messenger, Persistence,
+External Effects, and Other. Lanes are enabled by default and can be toggled from the toolbar
+without changing the underlying graph or exported JSON.

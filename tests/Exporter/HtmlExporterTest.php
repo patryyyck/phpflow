@@ -71,6 +71,13 @@ final class HtmlExporterTest extends TestCase
         self::assertStringContainsString('ASYNC MESSAGE', $html);
         self::assertStringContainsString('ASYNC HANDLER', $html);
         self::assertStringContainsString('Async / Messenger boundary', $html);
+        self::assertStringContainsString('id="toggle-lanes"', $html);
+        self::assertStringContainsString('function laneForNode(n)', $html);
+        self::assertStringContainsString("label:'ENTRY / HTTP'", $html);
+        self::assertStringContainsString("label:'ASYNC / MESSENGER'", $html);
+        self::assertStringContainsString("label:'PERSISTENCE'", $html);
+        self::assertStringContainsString("label:'EXTERNAL EFFECTS'", $html);
+        self::assertStringContainsString("class:'lane'", $html);
         self::assertStringContainsString('function isEntryCandidate(id)', $html);
         self::assertStringContainsString('for(const edge of incomingEdges.get(current)||[])', $html);
         self::assertStringContainsString('const maxNodes=900', $html);

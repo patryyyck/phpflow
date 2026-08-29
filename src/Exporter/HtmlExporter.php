@@ -42,7 +42,7 @@ h1{font-size:20px;margin:0 0 4px}.muted{color:#687386;font-size:12px}.toolbar{di
 button{border:1px solid #cbd3dd;background:#fff;border-radius:7px;padding:7px 10px;cursor:pointer}button:hover{background:#f1f4f8}button.active{background:#111827;color:#fff;border-color:#111827}
 .search{margin:14px 0}.search input{width:100%;border:1px solid #cbd3dd;border-radius:7px;padding:8px 10px;font-size:13px}.search-results{margin-top:6px;max-height:220px;overflow:auto}.search-result{display:block;width:100%;text-align:left;border:0;border-radius:5px;padding:7px;background:transparent}.search-result:hover,.search-result.active{background:#eef2f7}.search-result strong{display:block;font-size:12px}.search-result span{display:block;color:#687386;font-size:10px;margin-top:2px}.search-empty{font-size:11px;color:#687386;padding:6px}.node.search-match circle{stroke:#f59e0b;stroke-width:5}.filter{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px}.swatch{width:10px;height:10px;border-radius:50%;display:inline-block}
 main{position:relative;overflow:hidden}.canvas{width:100%;height:100%;cursor:grab}.canvas.dragging{cursor:grabbing}
-.minimap-wrap{position:absolute;right:18px;bottom:18px;width:240px;height:165px;background:#fff;border:2px solid #94a3b8;border-radius:10px;box-shadow:0 8px 24px rgba(15,23,42,.22);overflow:hidden;z-index:20}.minimap{width:100%;height:100%;cursor:crosshair}.minimap-node{fill:#94a3b8}.minimap-node.entry{fill:#2563eb}.minimap-node.async{fill:#c026d3}.minimap-edge{stroke:#cbd5e1;stroke-width:1;fill:none}.minimap-viewport{fill:rgba(37,99,235,.08);stroke:#2563eb;stroke-width:1.5;pointer-events:none}.minimap-label{position:absolute;top:6px;left:8px;font-size:10px;font-weight:700;color:#64748b;pointer-events:none}.minimap-wrap.hidden{display:none}
+.minimap-wrap{position:absolute;right:18px;bottom:18px;width:240px;height:165px;background:#fff;border:2px solid #94a3b8;border-radius:10px;box-shadow:0 8px 24px rgba(15,23,42,.22);overflow:hidden;z-index:20}.minimap{width:100%;height:100%;cursor:crosshair}.lane{fill:rgba(148,163,184,.06);stroke:#e2e8f0;stroke-width:1}.lane-label{font-size:10px;font-weight:800;fill:#64748b;letter-spacing:.08em}.lane-separator{stroke:#e2e8f0;stroke-width:1;stroke-dasharray:4 4}.minimap-node{fill:#94a3b8}.minimap-node.entry{fill:#2563eb}.minimap-node.async{fill:#c026d3}.minimap-edge{stroke:#cbd5e1;stroke-width:1;fill:none}.minimap-viewport{fill:rgba(37,99,235,.08);stroke:#2563eb;stroke-width:1.5;pointer-events:none}.minimap-label{position:absolute;top:6px;left:8px;font-size:10px;font-weight:700;color:#64748b;pointer-events:none}.minimap-wrap.hidden{display:none}
 .edge{stroke:#aeb7c4;stroke-width:1.35;fill:none;marker-end:url(#arrow)}.edge.async-boundary{stroke:#c026d3;stroke-width:2.4;stroke-dasharray:8 5;marker-end:url(#arrow-async)}.edge-label{font-size:9px;fill:#64748b;pointer-events:none;paint-order:stroke;stroke:#fff;stroke-width:3;stroke-linejoin:round}.edge-label.async-boundary{fill:#a21caf;font-weight:800}.node circle{stroke:#fff;stroke-width:2;filter:drop-shadow(0 1px 2px rgba(15,23,42,.16))}.node.async-node circle{stroke:#c026d3;stroke-width:3}.async-badge{font-size:8px;font-weight:800;fill:#a21caf;paint-order:stroke;stroke:#fff;stroke-width:3}.node text{font-size:11px;pointer-events:none;fill:#263244}.node.selected circle{stroke:#111827;stroke-width:4}.node.dimmed{opacity:.18}.edge.highlighted{stroke:#334155;stroke-width:2.6}.edge.path-highlighted{stroke:#2563eb;stroke-width:4;opacity:1;marker-end:url(#arrow-path)}.edge.dimmed{opacity:.08}.edge-label.dimmed{opacity:.08}.edge-label.highlighted{font-weight:700;fill:#334155}.edge-label.path-highlighted{font-weight:800;fill:#1d4ed8}.node.path-highlighted circle{stroke:#2563eb;stroke-width:5;filter:drop-shadow(0 0 4px rgba(37,99,235,.45))}.node.path-highlighted text{font-weight:700;fill:#1d4ed8}.nav-actions button.active{background:#111827;color:#fff}.toggle{cursor:pointer}.toggle text{font-size:13px;font-weight:700;fill:#fff;text-anchor:middle;dominant-baseline:central}.nav-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}.nav-actions button{font-size:11px}.hidden-count{font-size:10px;fill:#64748b}
 .empty{padding:16px;color:#687386}.kv{font-size:12px;margin:8px 0}.kv strong{display:block;color:#687386;margin-bottom:2px}.json{white-space:pre-wrap;word-break:break-word;font:11px ui-monospace,SFMono-Regular,Menlo,monospace;background:#f6f8fa;padding:10px;border-radius:7px}
 .preset-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}.preset-grid button{font-size:11px;padding:6px}.preset-grid button.active{background:#111827;color:#fff}.compact-option{display:flex;align-items:center;gap:8px;font-size:12px;margin-top:9px}.badge{display:inline-block;padding:3px 7px;border-radius:999px;background:#eef2f7;font-size:11px}
@@ -53,7 +53,7 @@ main{position:relative;overflow:hidden}.canvas{width:100%;height:100%;cursor:gra
 <aside>
 <h1>PHPFlow</h1>
 <div class="muted" id="stats"></div>
-<div class="toolbar"><button id="fit">Fit graph</button><button id="reset">Reset</button><button id="toggle-minimap" class="active">Minimap on</button></div>
+<div class="toolbar"><button id="fit">Fit graph</button><button id="reset">Reset</button><button id="toggle-minimap" class="active">Minimap on</button><button id="toggle-lanes" class="active">Lanes on</button></div>
 <div class="search">
 <input id="search" type="search" placeholder="Search route, class, table, URL…" autocomplete="off">
 <div id="search-results" class="search-results"></div>
@@ -73,7 +73,7 @@ main{position:relative;overflow:hidden}.canvas{width:100%;height:100%;cursor:gra
 <div class="filter"><span class="swatch" style="background:#c026d3"></span><span>Async / Messenger boundary</span></div>
 <div class="muted">Dashed magenta edges mark asynchronous hand-offs such as dispatching a message to a handler/transport.</div>
 <div class="legend-title">Navigation</div>
-<div class="muted">Drag to pan and use the mouse wheel to zoom. Click a node to inspect it. Database, HTTP and Errors presets keep upstream paths visible. Search always reveals its selected result. Use +/− to collapse or expand descendants.</div>
+<div class="muted">Drag to pan and use the mouse wheel to zoom. Click a node to inspect it. Visual lanes group entry/HTTP, application, async, persistence and external effects. Database, HTTP and Errors presets keep upstream paths visible. Search always reveals its selected result. Use +/− to collapse or expand descendants.</div>
 </aside>
 <main><svg class="canvas" id="canvas"></svg><div class="minimap-wrap" id="minimap-wrap"><div class="minimap-label" id="minimap-label">Overview</div><svg class="minimap" id="minimap"></svg></div></main>
 <aside class="details">
@@ -95,7 +95,7 @@ graph.edges.forEach(e=>{
  if(incoming.has(e.target)){incoming.get(e.target).push(e.source);incomingEdges.get(e.target).push(e)}
 });
 const width=()=>svg.clientWidth||900,height=()=>svg.clientHeight||700;
-let scale=1,tx=0,ty=0,drag=null,selected=null,focusRoot=null,directOnly=false,pathOnly=false,searchQuery='',searchMatches=[],explorePreset='all',hideTechnical=false,minimapState=null;
+let scale=1,tx=0,ty=0,drag=null,selected=null,focusRoot=null,directOnly=false,pathOnly=false,searchQuery='',searchMatches=[],explorePreset='all',hideTechnical=false,minimapState=null,showLanes=true;
 const collapsed=new Set(),positions=new Map();
 
 function el(name,attrs={}){const x=document.createElementNS(NS,name);for(const[k,v]of Object.entries(attrs))x.setAttribute(k,v);return x}
@@ -220,6 +220,29 @@ function visibleNodes(){
  ids=new Set([...ids].filter(id=>!hidden.has(id)));
  return ids;
 }
+const laneDefinitions=[
+ {id:'entry',label:'ENTRY / HTTP'},
+ {id:'application',label:'APPLICATION'},
+ {id:'async',label:'ASYNC / MESSENGER'},
+ {id:'persistence',label:'PERSISTENCE'},
+ {id:'effects',label:'EXTERNAL EFFECTS'},
+ {id:'other',label:'OTHER'}
+];
+function laneForNode(n){
+ if(!n)return 'other';
+ if(n.type==='route'||n.type==='controller'||n.type==='http_response')return 'entry';
+ if(n.type==='message'||n.type==='handler')return 'async';
+ if(n.type==='repository'||n.type==='database')return 'persistence';
+ if(['http_endpoint','mail','filesystem','cache','exception'].includes(n.type))return 'effects';
+ if(['service','condition','return_value','continuation','control_branch','loop','loop_control'].includes(n.type))return 'application';
+ return 'other';
+}
+function laneOrder(id){const i=laneDefinitions.findIndex(l=>l.id===id);return i<0?laneDefinitions.length:i}
+function laneGroups(ids){
+ const groups=new Map(laneDefinitions.map(l=>[l.id,[]]));
+ ids.forEach(id=>groups.get(laneForNode(nodeById.get(id)))?.push(id));
+ return groups;
+}
 function stableNodeCompare(a,b){
  const na=nodeById.get(a),nb=nodeById.get(b);
  const ka=`${na?.type||''}\u0000${na?.displayLabel||na?.label||''}\u0000${a}`;
@@ -252,16 +275,16 @@ function layout(ids){
  }
  ids.forEach(id=>{if(!depth.has(id))depth.set(id,0)});
  const levels=new Map();ids.forEach(id=>{const d=depth.get(id);if(!levels.has(d))levels.set(d,[]);levels.get(d).push(id)});
- levels.forEach(nodes=>nodes.sort(stableNodeCompare));
+ levels.forEach(nodes=>nodes.sort((a,b)=>{const la=laneOrder(laneForNode(nodeById.get(a))),lb=laneOrder(laneForNode(nodeById.get(b)));return la===lb?stableNodeCompare(a,b):la-lb}));
  const levelKeys=[...levels.keys()].sort((a,b)=>a-b);
  for(let sweep=0;sweep<4;sweep++){
   for(let i=1;i<levelKeys.length;i++){
    const prev=levels.get(levelKeys[i-1]),order=new Map(prev.map((id,index)=>[id,index]));
-   levels.set(levelKeys[i],reorderLevel(levels.get(levelKeys[i]),incoming,order));
+   levels.set(levelKeys[i],reorderLevel(levels.get(levelKeys[i]),incoming,order).sort((a,b)=>{const la=laneOrder(laneForNode(nodeById.get(a))),lb=laneOrder(laneForNode(nodeById.get(b)));return la===lb?0:la-lb}));
   }
   for(let i=levelKeys.length-2;i>=0;i--){
    const next=levels.get(levelKeys[i+1]),order=new Map(next.map((id,index)=>[id,index]));
-   levels.set(levelKeys[i],reorderLevel(levels.get(levelKeys[i]),outgoing,order));
+   levels.set(levelKeys[i],reorderLevel(levels.get(levelKeys[i]),outgoing,order).sort((a,b)=>{const la=laneOrder(laneForNode(nodeById.get(a))),lb=laneOrder(laneForNode(nodeById.get(b)));return la===lb?0:la-lb}));
   }
  }
  const maxCount=Math.max(1,...levelKeys.map(d=>levels.get(d).length)),rowGap=maxCount>18?68:maxCount>10?76:88;
@@ -319,6 +342,20 @@ function render(){
  const asyncMarker=el('marker',{id:'arrow-async',viewBox:'0 0 10 10',refX:'9',refY:'5',markerWidth:'7',markerHeight:'7',orient:'auto-start-reverse'});
  asyncMarker.appendChild(el('path',{d:'M 0 0 L 10 5 L 0 10 z',fill:'#c026d3'}));defs.appendChild(asyncMarker);svg.appendChild(defs);
  const viewport=el('g',{transform:`translate(${tx} ${ty}) scale(${scale})`});svg.appendChild(viewport);
+ if(showLanes&&ids.size){
+  const groups=laneGroups(ids),b=graphBounds();
+  if(b){
+   const allY=[...positions.values()].map(p=>p.y),minY=Math.min(...allY)-42,maxY=Math.max(...allY)+42;
+   laneDefinitions.forEach(lane=>{
+    const laneIds=groups.get(lane.id)||[];if(!laneIds.length)return;
+    const xs=laneIds.map(id=>positions.get(id)?.x).filter(Number.isFinite);if(!xs.length)return;
+    const x1=Math.min(...xs)-70,x2=Math.max(...xs)+165;
+    viewport.appendChild(el('rect',{x:x1,y:minY,width:Math.max(140,x2-x1),height:maxY-minY,class:'lane'}));
+    const label=el('text',{x:x1+8,y:minY+16,class:'lane-label'});label.textContent=lane.label;viewport.appendChild(label);
+    viewport.appendChild(el('line',{x1:x2,y1:minY,x2:x2,y2:maxY,class:'lane-separator'}));
+   });
+  }
+ }
  let highlight=new Set(),selectedPath=selected&&pathOnly?pathFromEntryPoint(selected):null;
  if(selected){highlight.add(selected);if(directOnly){(outgoing.get(selected)||[]).forEach(x=>highlight.add(x));(incoming.get(selected)||[]).forEach(x=>highlight.add(x))}}
  graph.edges.filter(e=>ids.has(e.source)&&ids.has(e.target)).forEach(e=>{
@@ -393,7 +430,7 @@ searchInput.addEventListener('input',()=>{searchQuery=searchInput.value;updateSe
 searchInput.addEventListener('keydown',e=>{if(e.key==='Enter'&&searchMatches.length){e.preventDefault();selectSearchResult(searchMatches[0])}if(e.key==='Escape'){searchInput.value='';searchQuery='';searchMatches=[];document.getElementById('search-results').innerHTML='';render()}});
 document.querySelectorAll('[data-preset]').forEach(button=>button.onclick=()=>setPreset(button.dataset.preset));
 document.getElementById('hide-technical').onchange=e=>{hideTechnical=e.target.checked;render();requestAnimationFrame(fit)};
-document.getElementById('fit').onclick=fit;document.getElementById('toggle-minimap').onclick=()=>{const wrap=document.getElementById('minimap-wrap'),button=document.getElementById('toggle-minimap'),hidden=wrap.classList.toggle('hidden');button.classList.toggle('active',!hidden);button.textContent=hidden?'Minimap off':'Minimap on'};document.getElementById('reset').onclick=()=>{scale=1;tx=0;ty=0;focusRoot=null;directOnly=false;pathOnly=false;explorePreset='all';hideTechnical=false;document.getElementById('hide-technical').checked=false;collapsed.clear();enabled.clear();types.forEach(type=>enabled.add(type));syncFilters();updatePresetButtons();render()};buildFilters();render();requestAnimationFrame(fit);
+document.getElementById('fit').onclick=fit;document.getElementById('toggle-minimap').onclick=()=>{const wrap=document.getElementById('minimap-wrap'),button=document.getElementById('toggle-minimap'),hidden=wrap.classList.toggle('hidden');button.classList.toggle('active',!hidden);button.textContent=hidden?'Minimap off':'Minimap on'};document.getElementById('toggle-lanes').onclick=()=>{showLanes=!showLanes;const button=document.getElementById('toggle-lanes');button.classList.toggle('active',showLanes);button.textContent=showLanes?'Lanes on':'Lanes off';render()};document.getElementById('reset').onclick=()=>{scale=1;tx=0;ty=0;focusRoot=null;directOnly=false;pathOnly=false;explorePreset='all';hideTechnical=false;showLanes=true;document.getElementById('toggle-lanes').classList.add('active');document.getElementById('toggle-lanes').textContent='Lanes on';document.getElementById('hide-technical').checked=false;collapsed.clear();enabled.clear();types.forEach(type=>enabled.add(type));syncFilters();updatePresetButtons();render()};buildFilters();render();requestAnimationFrame(fit);
 </script>
 </body>
 </html>
