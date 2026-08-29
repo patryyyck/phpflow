@@ -6,7 +6,7 @@ namespace PhpFlow;
 
 final class Version
 {
-    public const string VERSION = '0.1.0-dev';
+    public const string VERSION = '0.1.0';
 
     private function __construct()
     {

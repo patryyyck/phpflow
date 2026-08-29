@@ -74,6 +74,9 @@ PHPFlow currently supports:
 The detailed `v0.1` analysis contract, including partial and intentionally unsupported
 patterns, is documented in [docs/SUPPORT.md](docs/SUPPORT.md).
 
+The stable `v0.1` command names, exit statuses and machine-readable format versions are
+documented in [docs/CLI.md](docs/CLI.md).
+
 
 ## Requirements
 
