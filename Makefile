@@ -160,8 +160,23 @@ export-html:
 	@echo "Interactive HTML graph written to $(HTML_OUTPUT)"
 
 
+FORMAT ?= text
+
 diff:
+	@if [ -z "$(BEFORE)" ] || [ -z "$(AFTER)" ]; then \
+		echo "Usage: make diff BEFORE=/path/before.json AFTER=/path/after.json [FORMAT=text|json] [OUTPUT=/path/diff.json]"; \
+		exit 1; \
+	fi
+	@if [ -n "$(OUTPUT)" ] && [ "$(FORMAT)" != "json" ]; then \
+		echo "OUTPUT requires FORMAT=json"; \
+		exit 1; \
+	fi
 	docker compose run --rm \
 		-v "$(shell dirname $(BEFORE)):/before:ro" \
 		-v "$(shell dirname $(AFTER)):/after:ro" \
-		php php bin/phpflow diff "/before/$(shell basename $(BEFORE))" "/after/$(shell basename $(AFTER))"
+		$(if $(OUTPUT),-v "$(shell dirname $(OUTPUT)):/phpflow-output",) \
+		php php bin/phpflow diff \
+		"/before/$(shell basename $(BEFORE))" \
+		"/after/$(shell basename $(AFTER))" \
+		--format="$(FORMAT)" \
+		$(if $(OUTPUT),--output="/phpflow-output/$(shell basename $(OUTPUT))",)

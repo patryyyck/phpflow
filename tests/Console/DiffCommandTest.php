@@ -7,6 +7,7 @@ namespace PhpFlow\Tests\Console;
 use PhpFlow\Application\CompareGraphExports;
 use PhpFlow\Console\Command\DiffCommand;
 use PhpFlow\Console\GraphDiffRenderer;
+use PhpFlow\Exporter\GraphDiffJsonExporter;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
@@ -106,11 +107,88 @@ final class DiffCommandTest extends TestCase
         self::assertStringContainsString('Invalid before PHPFlow graph JSON', $tester->getDisplay());
     }
 
+
+    public function testItCanRenderDiffAsJson(): void
+    {
+        $before = $this->tempGraph([
+            $this->node('route:GET:/old', 'route', 'GET /old'),
+        ]);
+        $after = $this->tempGraph([
+            $this->node('route:GET:/new', 'route', 'GET /new'),
+        ]);
+
+        $tester = new CommandTester($this->command());
+
+        self::assertSame(
+            Command::SUCCESS,
+            $tester->execute([
+                'before' => $before,
+                'after' => $after,
+                '--format' => 'json',
+            ]),
+        );
+
+        $data = json_decode($tester->getDisplay(), true, flags: JSON_THROW_ON_ERROR);
+
+        self::assertSame('1.0', $data['schemaVersion']);
+        self::assertTrue($data['hasChanges']);
+        self::assertSame('route:GET:/new', $data['nodes']['added'][0]['id']);
+        self::assertSame('route:GET:/old', $data['nodes']['removed'][0]['id']);
+    }
+
+    public function testOutputRequiresJsonFormat(): void
+    {
+        $graph = $this->tempGraph([]);
+        $tester = new CommandTester($this->command());
+
+        self::assertSame(
+            Command::INVALID,
+            $tester->execute([
+                'before' => $graph,
+                'after' => $graph,
+                '--output' => sys_get_temp_dir().'/phpflow-diff.json',
+            ]),
+        );
+
+        self::assertStringContainsString('--output can only be used with --format=json.', $tester->getDisplay());
+    }
+
+    public function testItCanWriteJsonDiffToAFile(): void
+    {
+        $before = $this->tempGraph([]);
+        $after = $this->tempGraph([
+            $this->node('message:new', 'message', 'App\\Message\\NewMessage'),
+        ]);
+        $output = tempnam(sys_get_temp_dir(), 'phpflow-diff-output-');
+
+        if ($output === false) {
+            self::fail('Unable to create temporary output file.');
+        }
+
+        $this->files[] = $output;
+        $tester = new CommandTester($this->command());
+
+        self::assertSame(
+            Command::SUCCESS,
+            $tester->execute([
+                'before' => $before,
+                'after' => $after,
+                '--format' => 'json',
+                '--output' => $output,
+            ]),
+        );
+
+        $data = json_decode((string) file_get_contents($output), true, flags: JSON_THROW_ON_ERROR);
+        self::assertSame('1.0', $data['schemaVersion']);
+        self::assertSame('message:new', $data['nodes']['added'][0]['id']);
+    }
+
     private function command(): DiffCommand
     {
         return new DiffCommand(
             new CompareGraphExports(),
             new GraphDiffRenderer(),
+            new GraphDiffJsonExporter(),
         );
     }
 

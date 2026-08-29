@@ -335,8 +335,26 @@ php bin/phpflow diff before.json after.json
 
 The text report includes a compact category summary followed by added/removed nodes and
 edges. Invalid or unreadable input files fail explicitly instead of producing a partial diff.
-This command is designed for local review first; a machine-readable diff format is planned
-for CI/PR integrations.
+
+For CI and pull-request automation, the same comparison can be emitted with the versioned
+diff JSON schema `1.0`:
+
+```bash
+php bin/phpflow diff before.json after.json --format=json
+php bin/phpflow diff before.json after.json --format=json --output=/tmp/phpflow-diff.json
+```
+
+The Makefile wrapper forwards the format and persists JSON output outside the container:
+
+```bash
+make diff BEFORE=/path/before.json AFTER=/path/after.json
+make diff BEFORE=/path/before.json AFTER=/path/after.json FORMAT=json
+make diff BEFORE=/path/before.json AFTER=/path/after.json FORMAT=json OUTPUT=/tmp/phpflow-diff.json
+```
+
+The machine-readable payload contains `hasChanges`, the category `summary`, and separate
+`added`/`removed` node and edge collections. This keeps CI consumers independent from the
+human-readable text renderer.
 
 ## Interactive HTML export
 

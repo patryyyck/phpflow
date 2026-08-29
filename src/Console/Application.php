@@ -33,6 +33,7 @@ use PhpFlow\Exporter\MermaidExporter;
 use PhpFlow\Exporter\JsonExporter;
 use PhpFlow\Exporter\ImpactJsonExporter;
 use PhpFlow\Exporter\HtmlExporter;
+use PhpFlow\Exporter\GraphDiffJsonExporter;
 use PhpFlow\Infrastructure\Messenger\MessengerRoutingReader;
 use PhpFlow\Infrastructure\Scanner\DirectoryScanner;
 use PhpFlow\Version;
@@ -55,6 +56,7 @@ final class Application
         $this->application->add(new DiffCommand(
             new CompareGraphExports(),
             new GraphDiffRenderer(),
+            new GraphDiffJsonExporter(),
         ));
 
         $this->application->add(new ExportHtmlCommand(
