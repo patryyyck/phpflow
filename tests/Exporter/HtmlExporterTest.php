@@ -43,6 +43,11 @@ final class HtmlExporterTest extends TestCase
         self::assertStringContainsString('data-preset="errors"', $html);
         self::assertStringContainsString('id="hide-technical"', $html);
         self::assertStringContainsString('function presetMatches(n)', $html);
+        self::assertStringContainsString('function presetVisibleIds()', $html);
+        self::assertStringContainsString("['database','external_http','errors'].includes(explorePreset)", $html);
+        self::assertStringContainsString("explorePreset='all';hideTechnical=false", $html);
+        self::assertStringContainsString("id:'arrow'", $html);
+        self::assertStringContainsString('edge-label', $html);
         self::assertStringContainsString('function stableNodeCompare(a,b)', $html);
         self::assertStringContainsString('function reorderLevel(nodes,neighbors,neighborOrder)', $html);
         self::assertStringContainsString('for(let sweep=0;sweep<4;sweep++)', $html);

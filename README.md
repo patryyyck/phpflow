@@ -607,3 +607,12 @@ HTTP effects and impact analysis.
 HTTP impact lookup resolves path-specific call context before matching. This means a raw
 graph node such as `{param:method} {param:url}` can still be found by `impact:http` when an
 upstream call supplies a concrete method and URL for that route.
+
+### Viewer exploration improvements
+
+The interactive HTML viewer keeps upstream context when using the Database, External HTTP,
+or Errors exploration presets, so effect nodes remain connected to their entry paths. Selecting
+a search result automatically clears restrictive exploration state to guarantee that the node is
+revealed. Directed edges now include arrowheads and compact edge labels to make flow direction
+and relationship types easier to read.
+

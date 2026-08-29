@@ -42,7 +42,7 @@ h1{font-size:20px;margin:0 0 4px}.muted{color:#687386;font-size:12px}.toolbar{di
 button{border:1px solid #cbd3dd;background:#fff;border-radius:7px;padding:7px 10px;cursor:pointer}button:hover{background:#f1f4f8}
 .search{margin:14px 0}.search input{width:100%;border:1px solid #cbd3dd;border-radius:7px;padding:8px 10px;font-size:13px}.search-results{margin-top:6px;max-height:220px;overflow:auto}.search-result{display:block;width:100%;text-align:left;border:0;border-radius:5px;padding:7px;background:transparent}.search-result:hover,.search-result.active{background:#eef2f7}.search-result strong{display:block;font-size:12px}.search-result span{display:block;color:#687386;font-size:10px;margin-top:2px}.search-empty{font-size:11px;color:#687386;padding:6px}.node.search-match circle{stroke:#f59e0b;stroke-width:5}.filter{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px}.swatch{width:10px;height:10px;border-radius:50%;display:inline-block}
 main{position:relative;overflow:hidden}.canvas{width:100%;height:100%;cursor:grab}.canvas.dragging{cursor:grabbing}
-.edge{stroke:#aeb7c4;stroke-width:1.3;fill:none}.node circle{stroke:#fff;stroke-width:2}.node text{font-size:11px;pointer-events:none;fill:#263244}.node.selected circle{stroke:#111827;stroke-width:4}.node.dimmed{opacity:.18}.edge.highlighted{stroke:#334155;stroke-width:2.6}.edge.dimmed{opacity:.12}.toggle{cursor:pointer}.toggle text{font-size:13px;font-weight:700;fill:#fff;text-anchor:middle;dominant-baseline:central}.nav-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}.nav-actions button{font-size:11px}.hidden-count{font-size:10px;fill:#64748b}
+.edge{stroke:#aeb7c4;stroke-width:1.35;fill:none;marker-end:url(#arrow)}.edge-label{font-size:9px;fill:#64748b;pointer-events:none;paint-order:stroke;stroke:#fff;stroke-width:3;stroke-linejoin:round}.node circle{stroke:#fff;stroke-width:2;filter:drop-shadow(0 1px 2px rgba(15,23,42,.16))}.node text{font-size:11px;pointer-events:none;fill:#263244}.node.selected circle{stroke:#111827;stroke-width:4}.node.dimmed{opacity:.18}.edge.highlighted{stroke:#334155;stroke-width:2.6}.edge.dimmed{opacity:.12}.edge-label.dimmed{opacity:.15}.edge-label.highlighted{font-weight:700;fill:#334155}.toggle{cursor:pointer}.toggle text{font-size:13px;font-weight:700;fill:#fff;text-anchor:middle;dominant-baseline:central}.nav-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}.nav-actions button{font-size:11px}.hidden-count{font-size:10px;fill:#64748b}
 .empty{padding:16px;color:#687386}.kv{font-size:12px;margin:8px 0}.kv strong{display:block;color:#687386;margin-bottom:2px}.json{white-space:pre-wrap;word-break:break-word;font:11px ui-monospace,SFMono-Regular,Menlo,monospace;background:#f6f8fa;padding:10px;border-radius:7px}
 .preset-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}.preset-grid button{font-size:11px;padding:6px}.preset-grid button.active{background:#111827;color:#fff}.compact-option{display:flex;align-items:center;gap:8px;font-size:12px;margin-top:9px}.badge{display:inline-block;padding:3px 7px;border-radius:999px;background:#eef2f7;font-size:11px}
 </style>
@@ -69,7 +69,7 @@ main{position:relative;overflow:hidden}.canvas{width:100%;height:100%;cursor:gra
 <div class="legend-title">Node types</div>
 <div id="filters"></div>
 <div class="legend-title">Navigation</div>
-<div class="muted">Drag to pan and use the mouse wheel to zoom. Click a node to inspect it. Use the +/− control to collapse or expand descendants. The details panel can focus a branch, show direct connections, or jump back to its entry point.</div>
+<div class="muted">Drag to pan and use the mouse wheel to zoom. Click a node to inspect it. Database, HTTP and Errors presets keep upstream paths visible. Search always reveals its selected result. Use +/− to collapse or expand descendants.</div>
 </aside>
 <main><svg class="canvas" id="canvas"></svg></main>
 <aside class="details">
@@ -120,7 +120,8 @@ function updateSearch(){
  render();
 }
 function revealNode(id){
- focusRoot=null;directOnly=false;
+ focusRoot=null;directOnly=false;explorePreset='all';hideTechnical=false;
+ document.getElementById('hide-technical').checked=false;updatePresetButtons();
  for(const parent of ancestors(id))collapsed.delete(parent);
  const n=nodeById.get(id);if(n&&!enabled.has(n.type)){enabled.add(n.type);syncFilters()}
 }
@@ -152,8 +153,18 @@ function updatePresetButtons(){
 function setPreset(name){
  explorePreset=name;focusRoot=null;directOnly=false;updatePresetButtons();render();requestAnimationFrame(fit);
 }
+function presetVisibleIds(){
+ if(explorePreset==='all')return new Set(graph.nodes.map(n=>n.id));
+ const matches=graph.nodes.filter(presetMatches);
+ const ids=new Set(matches.map(n=>n.id));
+ if(['database','external_http','errors'].includes(explorePreset)){
+  matches.forEach(n=>ancestors(n.id).forEach(id=>ids.add(id)));
+ }
+ return ids;
+}
 function visibleNodes(){
- let ids=new Set(graph.nodes.filter(n=>enabled.has(n.type)&&presetMatches(n)&&(!hideTechnical||!technicalTypes.has(n.type))).map(n=>n.id));
+ const presetIds=presetVisibleIds();
+ let ids=new Set(graph.nodes.filter(n=>presetIds.has(n.id)&&enabled.has(n.type)&&(!hideTechnical||!technicalTypes.has(n.type))).map(n=>n.id));
  if(focusRoot&&ids.has(focusRoot)){const keep=descendants(focusRoot);keep.add(focusRoot);ids=new Set([...ids].filter(id=>keep.has(id)))}
  const hidden=new Set();
  collapsed.forEach(id=>descendants(id).forEach(child=>hidden.add(child)));
@@ -212,6 +223,8 @@ function layout(ids){
 }
 function render(){
  const ids=visibleNodes();layout(ids);svg.innerHTML='';
+ const defs=el('defs'),marker=el('marker',{id:'arrow',viewBox:'0 0 10 10',refX:'9',refY:'5',markerWidth:'6',markerHeight:'6',orient:'auto-start-reverse'});
+ marker.appendChild(el('path',{d:'M 0 0 L 10 5 L 0 10 z',fill:'#aeb7c4'}));defs.appendChild(marker);svg.appendChild(defs);
  const viewport=el('g',{transform:`translate(${tx} ${ty}) scale(${scale})`});svg.appendChild(viewport);
  let highlight=new Set();
  if(selected){highlight.add(selected);if(directOnly){(outgoing.get(selected)||[]).forEach(x=>highlight.add(x));(incoming.get(selected)||[]).forEach(x=>highlight.add(x))}}
@@ -220,6 +233,11 @@ function render(){
   let cls='edge';if(directOnly&&selected)cls+=(highlight.has(e.source)&&highlight.has(e.target))?' highlighted':' dimmed';
   const startX=a.x+18,endX=b.x-18,midX=(startX+endX)/2;
   viewport.appendChild(el('path',{d:`M ${startX} ${a.y} C ${midX} ${a.y}, ${midX} ${b.y}, ${endX} ${b.y}`,class:cls}));
+  const edgeText=e.label||e.type;
+  if(edgeText){
+   const label=el('text',{x:midX,y:(a.y+b.y)/2-6,class:`edge-label${cls.includes(' highlighted')?' highlighted':''}${cls.includes(' dimmed')?' dimmed':''}`});
+   label.textContent=edgeText.length>28?edgeText.slice(0,25)+'…':edgeText;viewport.appendChild(label);
+  }
  });
  graph.nodes.filter(n=>ids.has(n.id)).forEach(n=>{
   const p=positions.get(n.id);let cls=`node${selected===n.id?' selected':''}`;
