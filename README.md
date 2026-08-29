@@ -666,3 +666,12 @@ reach important effects: database operations, external HTTP calls, mail, filesys
 or exceptions. The mode is cycle-safe, preserves every upstream branch that contributes to
 an effect, highlights those paths in orange, and dims unrelated nodes and edges. The details
 panel shows how many distinct effect nodes are reachable from the selection.
+
+
+### Critical path
+
+The HTML viewer can now isolate the complete flow around any selected node. Critical path
+combines its nearest upstream entry path with every downstream path that reaches an important
+effect. The resulting entry point → selection → effects flow is highlighted in purple while
+unrelated graph elements are strongly dimmed. It reuses the cycle-safe entry/effect traversal
+and remains a viewer-only feature, leaving the graph JSON schema unchanged.
