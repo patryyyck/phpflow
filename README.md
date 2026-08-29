@@ -616,3 +616,11 @@ a search result automatically clears restrictive exploration state to guarantee 
 revealed. Directed edges now include arrowheads and compact edge labels to make flow direction
 and relationship types easier to read.
 
+
+
+### Entry-path highlighting
+
+Selecting a node in the interactive HTML viewer now automatically enables **Entry path** highlighting.
+PHPFlow highlights the shortest directed path from the nearest entry point
+to the selected node and dims unrelated nodes and edges. This makes it easier to understand
+how a route or message reaches a service, database effect, external HTTP call, or error.

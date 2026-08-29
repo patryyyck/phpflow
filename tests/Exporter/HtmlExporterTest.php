@@ -55,6 +55,14 @@ final class HtmlExporterTest extends TestCase
         self::assertStringContainsString('Focus branch', $html);
         self::assertStringContainsString('Direct only', $html);
         self::assertStringContainsString('Go to entry point', $html);
+        self::assertStringContainsString('Entry path', $html);
+        self::assertStringContainsString('function edgeKey(e)', $html);
+        self::assertStringContainsString('function pathFromEntryPoint(id)', $html);
+        self::assertStringContainsString("pathOnly=false", $html);
+        self::assertStringContainsString("path-highlighted", $html);
+        self::assertStringContainsString("id:'arrow-path'", $html);
+        self::assertStringContainsString('selectedPath.edgeKeys.has(edgeKey(e))', $html);
+        self::assertStringContainsString('pathOnly=Boolean(entryPointFor(n.id))', $html);
         self::assertStringContainsString('collapsed=new Set()', $html);
         self::assertStringNotContainsString('<script src=', $html);
         self::assertStringNotContainsString('<link rel="stylesheet" href=', $html);
