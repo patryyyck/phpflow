@@ -65,6 +65,12 @@ final class HtmlExporterTest extends TestCase
         self::assertStringContainsString("class:'minimap-viewport'", $html);
         self::assertStringContainsString('function edgeKey(e)', $html);
         self::assertStringContainsString('function pathFromEntryPoint(id)', $html);
+        self::assertStringContainsString('function isAsyncBoundary(e)', $html);
+        self::assertStringContainsString("id:'arrow-async'", $html);
+        self::assertStringContainsString('async-boundary', $html);
+        self::assertStringContainsString('ASYNC MESSAGE', $html);
+        self::assertStringContainsString('ASYNC HANDLER', $html);
+        self::assertStringContainsString('Async / Messenger boundary', $html);
         self::assertStringContainsString('function isEntryCandidate(id)', $html);
         self::assertStringContainsString('for(const edge of incomingEdges.get(current)||[])', $html);
         self::assertStringContainsString('const maxNodes=900', $html);

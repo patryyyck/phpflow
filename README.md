@@ -641,3 +641,11 @@ candidate in the same connected upstream component, instead of scanning forward 
 entry points. The minimap uses bounded sampling (nodes and edges), document fragments, and
 iterative bounds calculations so large graphs do not duplicate the full SVG workload or hit
 JavaScript argument limits while computing extents.
+
+
+### Async / Messenger boundaries
+
+The HTML viewer now makes asynchronous hand-offs explicit. Message and handler nodes receive
+a dedicated magenta treatment, while dispatch/transport/message boundary edges are rendered
+as dashed magenta arrows. The sidebar legend explains the convention, and the minimap also
+marks async nodes so async regions remain recognizable in large graphs.

@@ -42,8 +42,8 @@ h1{font-size:20px;margin:0 0 4px}.muted{color:#687386;font-size:12px}.toolbar{di
 button{border:1px solid #cbd3dd;background:#fff;border-radius:7px;padding:7px 10px;cursor:pointer}button:hover{background:#f1f4f8}button.active{background:#111827;color:#fff;border-color:#111827}
 .search{margin:14px 0}.search input{width:100%;border:1px solid #cbd3dd;border-radius:7px;padding:8px 10px;font-size:13px}.search-results{margin-top:6px;max-height:220px;overflow:auto}.search-result{display:block;width:100%;text-align:left;border:0;border-radius:5px;padding:7px;background:transparent}.search-result:hover,.search-result.active{background:#eef2f7}.search-result strong{display:block;font-size:12px}.search-result span{display:block;color:#687386;font-size:10px;margin-top:2px}.search-empty{font-size:11px;color:#687386;padding:6px}.node.search-match circle{stroke:#f59e0b;stroke-width:5}.filter{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px}.swatch{width:10px;height:10px;border-radius:50%;display:inline-block}
 main{position:relative;overflow:hidden}.canvas{width:100%;height:100%;cursor:grab}.canvas.dragging{cursor:grabbing}
-.minimap-wrap{position:absolute;right:18px;bottom:18px;width:240px;height:165px;background:#fff;border:2px solid #94a3b8;border-radius:10px;box-shadow:0 8px 24px rgba(15,23,42,.22);overflow:hidden;z-index:20}.minimap{width:100%;height:100%;cursor:crosshair}.minimap-node{fill:#94a3b8}.minimap-node.entry{fill:#2563eb}.minimap-edge{stroke:#cbd5e1;stroke-width:1;fill:none}.minimap-viewport{fill:rgba(37,99,235,.08);stroke:#2563eb;stroke-width:1.5;pointer-events:none}.minimap-label{position:absolute;top:6px;left:8px;font-size:10px;font-weight:700;color:#64748b;pointer-events:none}.minimap-wrap.hidden{display:none}
-.edge{stroke:#aeb7c4;stroke-width:1.35;fill:none;marker-end:url(#arrow)}.edge-label{font-size:9px;fill:#64748b;pointer-events:none;paint-order:stroke;stroke:#fff;stroke-width:3;stroke-linejoin:round}.node circle{stroke:#fff;stroke-width:2;filter:drop-shadow(0 1px 2px rgba(15,23,42,.16))}.node text{font-size:11px;pointer-events:none;fill:#263244}.node.selected circle{stroke:#111827;stroke-width:4}.node.dimmed{opacity:.18}.edge.highlighted{stroke:#334155;stroke-width:2.6}.edge.path-highlighted{stroke:#2563eb;stroke-width:4;opacity:1;marker-end:url(#arrow-path)}.edge.dimmed{opacity:.08}.edge-label.dimmed{opacity:.08}.edge-label.highlighted{font-weight:700;fill:#334155}.edge-label.path-highlighted{font-weight:800;fill:#1d4ed8}.node.path-highlighted circle{stroke:#2563eb;stroke-width:5;filter:drop-shadow(0 0 4px rgba(37,99,235,.45))}.node.path-highlighted text{font-weight:700;fill:#1d4ed8}.nav-actions button.active{background:#111827;color:#fff}.toggle{cursor:pointer}.toggle text{font-size:13px;font-weight:700;fill:#fff;text-anchor:middle;dominant-baseline:central}.nav-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}.nav-actions button{font-size:11px}.hidden-count{font-size:10px;fill:#64748b}
+.minimap-wrap{position:absolute;right:18px;bottom:18px;width:240px;height:165px;background:#fff;border:2px solid #94a3b8;border-radius:10px;box-shadow:0 8px 24px rgba(15,23,42,.22);overflow:hidden;z-index:20}.minimap{width:100%;height:100%;cursor:crosshair}.minimap-node{fill:#94a3b8}.minimap-node.entry{fill:#2563eb}.minimap-node.async{fill:#c026d3}.minimap-edge{stroke:#cbd5e1;stroke-width:1;fill:none}.minimap-viewport{fill:rgba(37,99,235,.08);stroke:#2563eb;stroke-width:1.5;pointer-events:none}.minimap-label{position:absolute;top:6px;left:8px;font-size:10px;font-weight:700;color:#64748b;pointer-events:none}.minimap-wrap.hidden{display:none}
+.edge{stroke:#aeb7c4;stroke-width:1.35;fill:none;marker-end:url(#arrow)}.edge.async-boundary{stroke:#c026d3;stroke-width:2.4;stroke-dasharray:8 5;marker-end:url(#arrow-async)}.edge-label{font-size:9px;fill:#64748b;pointer-events:none;paint-order:stroke;stroke:#fff;stroke-width:3;stroke-linejoin:round}.edge-label.async-boundary{fill:#a21caf;font-weight:800}.node circle{stroke:#fff;stroke-width:2;filter:drop-shadow(0 1px 2px rgba(15,23,42,.16))}.node.async-node circle{stroke:#c026d3;stroke-width:3}.async-badge{font-size:8px;font-weight:800;fill:#a21caf;paint-order:stroke;stroke:#fff;stroke-width:3}.node text{font-size:11px;pointer-events:none;fill:#263244}.node.selected circle{stroke:#111827;stroke-width:4}.node.dimmed{opacity:.18}.edge.highlighted{stroke:#334155;stroke-width:2.6}.edge.path-highlighted{stroke:#2563eb;stroke-width:4;opacity:1;marker-end:url(#arrow-path)}.edge.dimmed{opacity:.08}.edge-label.dimmed{opacity:.08}.edge-label.highlighted{font-weight:700;fill:#334155}.edge-label.path-highlighted{font-weight:800;fill:#1d4ed8}.node.path-highlighted circle{stroke:#2563eb;stroke-width:5;filter:drop-shadow(0 0 4px rgba(37,99,235,.45))}.node.path-highlighted text{font-weight:700;fill:#1d4ed8}.nav-actions button.active{background:#111827;color:#fff}.toggle{cursor:pointer}.toggle text{font-size:13px;font-weight:700;fill:#fff;text-anchor:middle;dominant-baseline:central}.nav-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}.nav-actions button{font-size:11px}.hidden-count{font-size:10px;fill:#64748b}
 .empty{padding:16px;color:#687386}.kv{font-size:12px;margin:8px 0}.kv strong{display:block;color:#687386;margin-bottom:2px}.json{white-space:pre-wrap;word-break:break-word;font:11px ui-monospace,SFMono-Regular,Menlo,monospace;background:#f6f8fa;padding:10px;border-radius:7px}
 .preset-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}.preset-grid button{font-size:11px;padding:6px}.preset-grid button.active{background:#111827;color:#fff}.compact-option{display:flex;align-items:center;gap:8px;font-size:12px;margin-top:9px}.badge{display:inline-block;padding:3px 7px;border-radius:999px;background:#eef2f7;font-size:11px}
 </style>
@@ -69,6 +69,9 @@ main{position:relative;overflow:hidden}.canvas{width:100%;height:100%;cursor:gra
 <label class="compact-option"><input id="hide-technical" type="checkbox">Hide technical nodes</label>
 <div class="legend-title">Node types</div>
 <div id="filters"></div>
+<div class="legend-title">Flow boundaries</div>
+<div class="filter"><span class="swatch" style="background:#c026d3"></span><span>Async / Messenger boundary</span></div>
+<div class="muted">Dashed magenta edges mark asynchronous hand-offs such as dispatching a message to a handler/transport.</div>
 <div class="legend-title">Navigation</div>
 <div class="muted">Drag to pan and use the mouse wheel to zoom. Click a node to inspect it. Database, HTTP and Errors presets keep upstream paths visible. Search always reveals its selected result. Use +/− to collapse or expand descendants.</div>
 </aside>
@@ -99,6 +102,16 @@ function el(name,attrs={}){const x=document.createElementNS(NS,name);for(const[k
 function descendants(id){const found=new Set(),q=[...(outgoing.get(id)||[])];while(q.length){const x=q.shift();if(found.has(x)||x===id)continue;found.add(x);q.push(...(outgoing.get(x)||[]))}return found}
 function ancestors(id){const found=new Set(),q=[...(incoming.get(id)||[])];while(q.length){const x=q.shift();if(found.has(x)||x===id)continue;found.add(x);q.push(...(incoming.get(x)||[]))}return found}
 function edgeKey(e){return `${e.source}\u0000${e.target}\u0000${e.type||''}\u0000${e.label||''}\u0000${e.order??''}`}
+function isAsyncNode(n){return Boolean(n&&(n.type==='message'||n.type==='handler'))}
+function isAsyncBoundary(e){
+ const type=String(e.type||'').toLowerCase(),label=String(e.label||'').toLowerCase();
+ const source=nodeById.get(e.source),target=nodeById.get(e.target);
+ if(type.includes('dispatch')||type.includes('async')||type.includes('message')||type.includes('transport'))return true;
+ if(label.includes('dispatch')||label.includes('async')||label.includes('messenger')||label.includes('transport'))return true;
+ if(source?.type==='message'&&target?.type==='handler')return true;
+ if(source?.type!=='message'&&target?.type==='message')return true;
+ return false;
+}
 function isEntryCandidate(id){
  const n=nodeById.get(id);if(!n)return false;
  if(n.metadata?.entryPoint)return true;
@@ -286,7 +299,7 @@ function renderMinimap(ids){
  }
  sampledIds.forEach(id=>{
   const n=nodeById.get(id),p=positions.get(id);if(!n||!p)return;
-  fragment.appendChild(el('circle',{cx:p.x*miniScale+ox,cy:p.y*miniScale+oy,r:n.metadata?.entryPoint?3.4:2.2,class:`minimap-node${n.metadata?.entryPoint?' entry':''}`}));
+  fragment.appendChild(el('circle',{cx:p.x*miniScale+ox,cy:p.y*miniScale+oy,r:n.metadata?.entryPoint?3.4:2.2,class:`minimap-node${n.metadata?.entryPoint?' entry':''}${isAsyncNode(n)?' async':''}`}));
  });
  const left=-tx/scale,top=-ty/scale,right=left+width()/scale,bottom=top+height()/scale;
  fragment.appendChild(el('rect',{x:left*miniScale+ox,y:top*miniScale+oy,width:Math.max(8,(right-left)*miniScale),height:Math.max(8,(bottom-top)*miniScale),class:'minimap-viewport'}));
@@ -302,31 +315,36 @@ function render(){
  const defs=el('defs'),marker=el('marker',{id:'arrow',viewBox:'0 0 10 10',refX:'9',refY:'5',markerWidth:'6',markerHeight:'6',orient:'auto-start-reverse'});
  marker.appendChild(el('path',{d:'M 0 0 L 10 5 L 0 10 z',fill:'#aeb7c4'}));defs.appendChild(marker);
  const pathMarker=el('marker',{id:'arrow-path',viewBox:'0 0 10 10',refX:'9',refY:'5',markerWidth:'7',markerHeight:'7',orient:'auto-start-reverse'});
- pathMarker.appendChild(el('path',{d:'M 0 0 L 10 5 L 0 10 z',fill:'#2563eb'}));defs.appendChild(pathMarker);svg.appendChild(defs);
+ pathMarker.appendChild(el('path',{d:'M 0 0 L 10 5 L 0 10 z',fill:'#2563eb'}));defs.appendChild(pathMarker);
+ const asyncMarker=el('marker',{id:'arrow-async',viewBox:'0 0 10 10',refX:'9',refY:'5',markerWidth:'7',markerHeight:'7',orient:'auto-start-reverse'});
+ asyncMarker.appendChild(el('path',{d:'M 0 0 L 10 5 L 0 10 z',fill:'#c026d3'}));defs.appendChild(asyncMarker);svg.appendChild(defs);
  const viewport=el('g',{transform:`translate(${tx} ${ty}) scale(${scale})`});svg.appendChild(viewport);
  let highlight=new Set(),selectedPath=selected&&pathOnly?pathFromEntryPoint(selected):null;
  if(selected){highlight.add(selected);if(directOnly){(outgoing.get(selected)||[]).forEach(x=>highlight.add(x));(incoming.get(selected)||[]).forEach(x=>highlight.add(x))}}
  graph.edges.filter(e=>ids.has(e.source)&&ids.has(e.target)).forEach(e=>{
   const a=positions.get(e.source),b=positions.get(e.target);if(!a||!b)return;
   let cls='edge';
+  const asyncBoundary=isAsyncBoundary(e);
+  if(asyncBoundary)cls+=' async-boundary';
   if(pathOnly&&selectedPath)cls+=selectedPath.edgeKeys.has(edgeKey(e))?' path-highlighted':' dimmed';
   else if(directOnly&&selected)cls+=(highlight.has(e.source)&&highlight.has(e.target))?' highlighted':' dimmed';
   const startX=a.x+18,endX=b.x-18,midX=(startX+endX)/2;
   viewport.appendChild(el('path',{d:`M ${startX} ${a.y} C ${midX} ${a.y}, ${midX} ${b.y}, ${endX} ${b.y}`,class:cls}));
   const edgeText=e.label||e.type;
   if(edgeText){
-   const label=el('text',{x:midX,y:(a.y+b.y)/2-6,class:`edge-label${cls.includes(' highlighted')?' highlighted':''}${cls.includes(' path-highlighted')?' path-highlighted':''}${cls.includes(' dimmed')?' dimmed':''}`});
+   const label=el('text',{x:midX,y:(a.y+b.y)/2-6,class:`edge-label${asyncBoundary?' async-boundary':''}${cls.includes(' highlighted')?' highlighted':''}${cls.includes(' path-highlighted')?' path-highlighted':''}${cls.includes(' dimmed')?' dimmed':''}`});
    label.textContent=edgeText.length>28?edgeText.slice(0,25)+'…':edgeText;viewport.appendChild(label);
   }
  });
  graph.nodes.filter(n=>ids.has(n.id)).forEach(n=>{
-  const p=positions.get(n.id);let cls=`node${selected===n.id?' selected':''}`;
+  const p=positions.get(n.id);let cls=`node${selected===n.id?' selected':''}${isAsyncNode(n)?' async-node':''}`;
   if(searchQuery.trim()&&searchableText(n).includes(searchQuery.trim().toLowerCase()))cls+=' search-match';
   if(pathOnly&&selectedPath)cls+=selectedPath.nodes.has(n.id)?' path-highlighted':' dimmed';
   else if(directOnly&&selected&&!highlight.has(n.id))cls+=' dimmed';
   const g=el('g',{class:cls,transform:`translate(${p.x} ${p.y})`});
   g.appendChild(el('circle',{r:17,fill:colors[n.type]||'#475569'}));
   const label=el('text',{x:25,y:4});const shown=n.displayLabel||n.label;label.textContent=shown.length>52?shown.slice(0,49)+'…':shown;g.appendChild(label);
+  if(isAsyncNode(n)){const badge=el('text',{x:25,y:17,class:'async-badge'});badge.textContent=n.type==='message'?'ASYNC MESSAGE':'ASYNC HANDLER';g.appendChild(badge)}
   const children=(outgoing.get(n.id)||[]).filter(id=>enabled.has(nodeById.get(id)?.type));
   if(children.length){
    const toggle=el('g',{class:'toggle',transform:'translate(-24 0)'});
