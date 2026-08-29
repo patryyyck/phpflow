@@ -1,32 +1,39 @@
 # PHPFlow
 
-PHPFlow is a static flow analyzer for PHP applications. It reconstructs application paths
-from framework entry points to messages, handlers, services, repositories, database effects,
-external HTTP calls, exceptions, and HTTP responses — without executing the target project.
+**Understand what your Symfony application can actually do — without running it.**
 
-> **Repository description:** Static flow analyzer for PHP applications — trace routes through messages, services, database effects and external HTTP calls without running the app.
+PHPFlow is an open-source static flow analyzer for PHP. It reconstructs application paths from
+HTTP routes and Messenger messages through controllers, handlers, services and repositories,
+all the way to database effects, external HTTP calls, responses and exceptions.
 
-## Why PHPFlow?
+<p align="center">
+  <img src="docs/assets/phpflow-viewer.png" alt="PHPFlow flow graph showing an HTTP route crossing application, Messenger, persistence and external-effect boundaries">
+</p>
 
-Large PHP applications often hide an application's real execution path across controllers,
-Messenger messages, handlers, interfaces, repositories, framework configuration, and
-infrastructure clients. PHPFlow turns those relationships into an inspectable flow graph.
+> The graph above uses fictional domain names to keep the example application-neutral.
+> PHPFlow's HTML viewer is self-contained and generated locally from the analyzed source.
 
-It is designed to help answer questions such as:
+## What can PHPFlow answer?
 
-- What happens when this HTTP route is called?
-- Which messages and handlers are involved?
-- Which repositories and database tables can be reached?
-- Which external HTTP APIs can be called?
-- Which HTTP responses or exceptions can terminate the flow?
-- Where does a recursive or cyclic service/message path lead?
+When a Symfony application grows, answering a simple question often means jumping through
+controllers, service interfaces, Messenger configuration, handlers and repositories.
 
-PHPFlow performs static analysis only. It does not boot or execute the application being
-analysed.
+PHPFlow turns that investigation into queries you can repeat:
 
-## Example
+| Question | PHPFlow |
+| --- | --- |
+| **What happens when this route is called?** | Follow the flow from route to responses, effects and failures. |
+| **Which entry points touch this table?** | Trace database impact backwards to HTTP routes and messages. |
+| **What depends on this service?** | Find the reachable application flows before changing it. |
+| **Where is this message handled?** | Follow Messenger dispatches, handlers and async boundaries. |
+| **Which flows call this external API?** | Find statically recoverable HTTP dependencies and their callers. |
+| **Where can this exception surface?** | Trace failures back to the entry points that can reach them. |
 
-Given a fictional application flow, PHPFlow can render an inspection tree similar to:
+PHPFlow performs **static analysis only**. It does not boot or execute the target application.
+
+## See the flow, not just the files
+
+A flow such as:
 
 ```text
 POST /catalog/{recordId}/sync
@@ -37,94 +44,35 @@ POST /catalog/{recordId}/sync
             │   └── RecordRepository::findRequired
             │       └── SELECT records
             ├── ExternalSyncClientInterface::sync
-            │   └── ExternalSyncClient::sync
-            │       └── POST %sync.base_url%/v1/resources
+            │   └── POST %sync.base_url%/v1/resources
             └── RecordLinkRepositoryInterface::insert
-                └── RecordLinkRepository::insert
-                    └── INSERT record_links
+                └── INSERT record_links
 ```
 
-The exact output depends on what PHPFlow can prove statically from the target project's
-source and configuration.
+can be explored as an interactive graph with functional lanes, Messenger boundaries, search,
+filters, minimap navigation, entry-path highlighting, paths to effects and critical-path focus.
 
-## Features
+The exact graph is deliberately conservative: PHPFlow only reports relationships it can prove
+from supported static patterns.
 
-PHPFlow currently supports:
+## Quick start
 
-- recursive discovery of PHP source files while excluding `vendor/` from application scans;
-- PHP declarations and PHP 8 attributes;
-- Symfony `#[Route]` controller routes;
-- Symfony Messenger dispatches, handlers, recursive message flows, and cycles;
-- Messenger routing from YAML and PHP configuration, including interface-based routing;
-- injected service calls and interface-to-implementation resolution;
-- Symfony service aliases declared in PHP configuration;
-- repository calls and DBAL/database effects;
-- database table extraction for common `SELECT`, `INSERT`, `UPDATE`, and `DELETE` patterns;
-- Doctrine DBAL QueryBuilder effects;
-- external HTTP client calls with statically recoverable methods and URLs;
-- source-order preservation for effects;
-- HTTP responses and status codes;
-- conditional branches, `match`, ternaries, `??`, and short-circuit expressions;
-- thrown exceptions and `try/catch/finally`;
-- loops plus `break` and `continue`;
-- conservative unreachable-code filtering;
-- human-readable flow trees and compact `--summary` output;
-- complete or route-scoped Mermaid graph export.
-
-The detailed `v0.1` analysis contract, including partial and intentionally unsupported
-patterns, is documented in [docs/SUPPORT.md](docs/SUPPORT.md).
-
-The stable `v0.1` command names, exit statuses and machine-readable format versions are
-documented in [docs/CLI.md](docs/CLI.md).
-
-Release history is documented in [CHANGELOG.md](CHANGELOG.md). Maintainers can use
-[RELEASE.md](RELEASE.md) for the `v0.1.0` publication checklist.
-
-
-## Requirements
-
-The recommended development setup requires:
-
-- Docker with Docker Compose;
-- GNU Make.
-
-The PHP package itself requires PHP 8.4.
-
-## Installation
-
-Clone the repository and build the development container:
+PHPFlow's repository workflow uses Docker, so PHP does not need to be installed on the host.
 
 ```bash
 git clone <repository-url>
 cd phpflow
-
 make build
 docker compose run --rm php composer install
 ```
 
-Run the test suite:
-
-```bash
-make test
-```
-
-## Quick start
-
-Scan a project:
+Analyze a project:
 
 ```bash
 make scan PROJECT_PATH=/path/to/project
 ```
 
-Equivalent direct command:
-
-```bash
-docker compose run --rm \
-    -v "/path/to/project:/workspace:ro" \
-    php php bin/phpflow scan /workspace
-```
-
-Inspect a route:
+Inspect one HTTP flow:
 
 ```bash
 make inspect \
@@ -133,93 +81,40 @@ make inspect \
     METHOD=POST
 ```
 
-For a compact view:
+Generate the interactive viewer:
 
 ```bash
-make inspect \
+make export-html \
     PROJECT_PATH=/path/to/project \
-    ROUTE='/catalog/{recordId}/sync' \
-    METHOD=POST \
-    SUMMARY=1
+    HTML_OUTPUT=/tmp/phpflow.html
 ```
+
+Open `/tmp/phpflow.html` in a browser. The export is a self-contained HTML file with no external
+JavaScript or CDN dependency.
 
 ## Impact analysis
 
-PHPFlow also exposes a unified impact command. Choose exactly one target:
+PHPFlow can traverse the graph in the opposite direction too: start with something you plan to
+change and discover which entry points can reach it.
 
 ```bash
-php bin/phpflow impact /path/to/project --table=companies
-php bin/phpflow impact /path/to/project --http='/v2/directory/search'
-php bin/phpflow impact /path/to/project --message=SyncCompany
-php bin/phpflow impact /path/to/project --service='InvoiceGenerator::generate'
-php bin/phpflow impact /path/to/project --exception=PaymentFailed
+make impact PROJECT_PATH=/path/to/project TABLE=companies
+make impact PROJECT_PATH=/path/to/project HTTP='/v2/directory/search'
+make impact PROJECT_PATH=/path/to/project MESSAGE=SyncCompany
+make impact PROJECT_PATH=/path/to/project SERVICE='InvoiceGenerator::generate'
+make impact PROJECT_PATH=/path/to/project EXCEPTION=PaymentFailed
 ```
 
-Use `--summary` to list only the unique impacted entry points. The existing specialized
-`impact:*` commands remain available.
-
-
-Impact results can also be emitted as a dedicated versioned JSON contract:
+Use `SUMMARY=1` when you only need the impacted entry points:
 
 ```bash
-php bin/phpflow impact /path/to/project \
-    --table=companies \
-    --format=json
-```
-
-Write the focused blast radius to a file:
-
-```bash
-php bin/phpflow impact /path/to/project \
-    --service='InvoiceGenerator::generate' \
-    --format=json \
-    --output=/tmp/phpflow-impact.json
-```
-
-The impact JSON contract starts at `schemaVersion: "1.0"` and contains the search `target`,
-unique `entryPoints`, structured `nodes`, and each complete impact `path` as node IDs. It is
-designed for CI integrations and focused views in the future interactive PHPFlow UI.
-
-With the Makefile, the same facade is available through `make impact`, for example:
-
-```bash
-make impact PROJECT_PATH=/path/to/project SERVICE='InvoiceGenerator::generate' SUMMARY=1
-```
-
-PHPFlow can also traverse the graph backwards from a database table to the application entry
-points that can reach it. Entry points include HTTP routes and standalone Messenger messages.
-
-```bash
-make impact-table \
+make impact \
     PROJECT_PATH=/path/to/project \
-    TABLE=record_links
+    SERVICE='InvoiceGenerator::generate' \
+    SUMMARY=1
 ```
 
-Equivalent direct command:
-
-```bash
-php bin/phpflow impact:table /path/to/project record_links
-```
-
-Example:
-
-```text
-Entry points impacting table record_links
-
-POST /catalog/{recordId}/sync
-└── CatalogController::sync
-    └── SyncRecord
-        └── SyncRecordHandler::__invoke
-            └── RecordLinkRepositoryInterface::insert
-                └── RecordLinkRepository::insert
-                    └── INSERT record_links
-```
-
-Table lookup accepts both bare and schema-qualified names. For example, `TABLE=companies`
-matches effects on `companies`, `public.companies`, or quoted SQL identifiers such as
-`"public"."companies"`.
-
-You can restrict the result to one SQL operation:
+Database impact can also be narrowed by operation:
 
 ```bash
 make impact-table \
@@ -228,208 +123,33 @@ make impact-table \
     OPERATION=SELECT
 ```
 
-Equivalent direct command:
+## Explore interactively
 
-```bash
-php bin/phpflow impact:table /path/to/project companies --operation=SELECT
-```
+The HTML viewer is designed for investigation rather than static diagrams. It includes:
 
-Supported filters are `SELECT`, `INSERT`, `UPDATE`, and `DELETE`.
+- deterministic hierarchical layout and functional swimlanes;
+- distinct async / Messenger boundaries;
+- node-type and exploration filters;
+- full-graph search across nodes and edge metadata;
+- expand/collapse and focused branches;
+- entry-point path highlighting;
+- path-to-effects and critical-path highlighting;
+- a minimap for large graphs;
+- detailed node metadata including callable, FQCN and source file when available.
 
-
-Standalone Messenger messages are treated as impact entry points when they are not already
-dispatched from another modelled route or process. This lets `impact:table` and `impact:http`
-report worker/consumer flows in addition to HTTP routes without duplicating messages that
-already belong to a route-driven path.
-
-Messenger messages can also be searched in reverse to find which entry points can dispatch
-them, including recursive message-to-message flows:
-
-```bash
-make impact-message \
-    PROJECT_PATH=/path/to/project \
-    MESSAGE='App\\Message\\SyncCompany'
-```
-
-A short class name is accepted when convenient:
-
-```bash
-make impact-message PROJECT_PATH=/path/to/project MESSAGE=SyncCompany
-make impact-service PROJECT_PATH=/path/to/project SERVICE=InvoiceGenerator
-make impact-exception PROJECT_PATH=/path/to/project EXCEPTION=PaymentFailed
-```
-
-Equivalent direct command:
-
-```bash
-php bin/phpflow impact:message /path/to/project 'App\\Message\\SyncCompany'
-```
-
-Application classes and methods can be searched to estimate the entry points affected by a
-code change:
-
-```bash
-make impact-service \
-    PROJECT_PATH=/path/to/project \
-    SERVICE='App\Service\InvoiceGenerator'
-```
-
-Target one method:
-
-```bash
-make impact-service \
-    PROJECT_PATH=/path/to/project \
-    SERVICE='App\Service\InvoiceGenerator::generate'
-```
-
-Short names such as `InvoiceGenerator` and `InvoiceGenerator::generate` are also accepted.
-The search includes services, repositories, handlers, and controllers represented in the
-flow graph.
-
-Thrown exceptions can be searched in reverse to identify every route or standalone
-Messenger process that can reach the corresponding `throw`:
-
-```bash
-make impact-exception \
-    PROJECT_PATH=/path/to/project \
-    EXCEPTION='App\Exception\PaymentFailed'
-```
-
-Short exception class names are also accepted:
-
-```bash
-make impact-exception \
-    PROJECT_PATH=/path/to/project \
-    EXCEPTION=PaymentFailed
-```
-
-Conditional branches leading to the exception remain visible in the returned path.
-
-External HTTP endpoints can be searched by full URL or by fragment:
-
-```bash
-make impact-http \
-    PROJECT_PATH=/path/to/project \
-    HTTP='/v1/resources'
-```
-
-Equivalent direct command:
-
-```bash
-php bin/phpflow impact:http /path/to/project '/v1/resources'
-```
-
-HTTP URL reconstruction is performed directly from the AST when full string resolution is not possible. Partially dynamic URLs preserve their known static fragments using `{dynamic}` placeholders, for example `POST {dynamic}/v2/directory/search`. This keeps `impact:http` useful even when a base URL or path parameter cannot be fully resolved.
-
-The HTTP lookup is case-insensitive and matches against the complete effect label, including
-the HTTP method and statically recovered URL. Both table and HTTP impact analysis now share
-the same cycle-safe reverse graph traversal.
-
-## Graph comparison foundation
-
-PHPFlow can compare two versioned graph JSON payloads through its application layer. This
-foundation is intentionally separate from the CLI for now: it detects added and removed
-nodes, changed node payloads, added and removed edges, and produces a compact summary for
-routes, database effects, external HTTP calls, messages, exceptions, services, repositories,
-handlers, and controllers.
-
-A node whose stable ID remains the same but whose exported payload changes is represented as
-one removed node plus one added node. This makes semantic changes such as `SELECT companies`
-becoming `UPDATE companies` visible instead of silently treating the node as unchanged.
-
-The comparison layer is exposed through the CLI:
-
-```bash
-php bin/phpflow diff before.json after.json
-```
-
-The text report includes a compact category summary followed by added/removed nodes and
-edges. Invalid or unreadable input files fail explicitly instead of producing a partial diff.
-
-For CI and pull-request automation, the same comparison can be emitted with the versioned
-diff JSON schema `1.0`:
-
-```bash
-php bin/phpflow diff before.json after.json --format=json
-php bin/phpflow diff before.json after.json --format=json --output=/tmp/phpflow-diff.json
-```
-
-The Makefile wrapper forwards the format and persists JSON output outside the container:
-
-```bash
-make diff BEFORE=/path/before.json AFTER=/path/after.json
-make diff BEFORE=/path/before.json AFTER=/path/after.json FORMAT=json
-make diff BEFORE=/path/before.json AFTER=/path/after.json FORMAT=json OUTPUT=/tmp/phpflow-diff.json
-```
-
-The machine-readable payload contains `hasChanges`, the category `summary`, and separate
-`added`/`removed` node and edge collections. This keeps CI consumers independent from the
-human-readable text renderer.
-
-## Interactive HTML export
-
-PHPFlow can generate a self-contained interactive HTML viewer. No application server or
-external JavaScript dependency is required: the versioned graph JSON is embedded directly
-in the generated file.
-
-```bash
-make export-html \
-    PROJECT_PATH=/path/to/project \
-    HTML_OUTPUT=/tmp/phpflow.html
-```
-
-A route can be isolated just like the JSON and Mermaid exports:
+You can also scope an export to one route:
 
 ```bash
 make export-html \
     PROJECT_PATH=/path/to/project \
     HTML_OUTPUT=/tmp/phpflow-route.html \
-    ROUTE=/companies \
-    METHOD=GET
+    ROUTE='/catalog/{recordId}/sync' \
+    METHOD=POST
 ```
 
-Open the generated file in a browser. The viewer supports pan/zoom, fit/reset, filtering by
-node type, node selection, direct-connection counts, and inspection of the structured
-metadata introduced by JSON schema `1.2`.
+## Machine-readable output
 
-Branches can be collapsed and expanded directly from graph nodes. From the details panel,
-you can focus the selected branch, highlight only its direct connections, jump back to the
-nearest application entry point, or clear the current focus. These controls are especially
-useful when exploring large route and Messenger flows.
-
-
-The viewer also includes full-graph search. Search by route, short or fully-qualified class
-name, method, table, HTTP URL, message, exception, node type, or any structured metadata.
-Matching nodes are highlighted in the graph; selecting a result automatically reveals
-collapsed ancestors, restores a filtered node type when necessary, centers the node, and
-opens its details. Search also indexes incoming and outgoing edge context, so dynamically
-resolved external HTTP URLs remain discoverable even when the HTTP endpoint node itself
-contains a parameter placeholder. Press Enter to open the first result or Escape to clear
-the search.
-
-
-Exploration presets make large graphs easier to scan without changing the exported graph:
-**Entry points** shows application roots, **Database** shows database effects, **External HTTP**
-shows outbound HTTP endpoints, and **Errors** focuses exceptions plus HTTP 4xx/5xx responses.
-The **Hide technical nodes** toggle removes control-flow-only nodes such as conditions, loop
-controls, continuations, and return values. The existing node-type checkboxes remain available
-and combine with these presets.
-
-
-The graph layout is hierarchical and deterministic. Nodes inside each depth level are reordered
-with repeated barycentric passes against their parents and children, which keeps related branches
-closer together and reduces edge crossings on large flows. Levels are vertically balanced and
-use adaptive spacing for dense graphs. Connections are drawn as smooth horizontal curves instead
-of straight diagonals, making long branches easier to follow.
-
-The viewer remains self-contained and dependency-free: all navigation runs locally in the
-generated HTML file.
-
-## JSON export
-
-PHPFlow can export the same flow graph as a stable, versioned JSON contract. This format is
-intended for integrations and future interactive graph visualizations without coupling them
-to PHPFlow's internal PHP objects.
+PHPFlow exports versioned JSON for tooling and future CI integrations.
 
 ```bash
 make export-json \
@@ -437,268 +157,96 @@ make export-json \
     JSON_OUTPUT=/tmp/phpflow.json
 ```
 
-Export only one route:
+Current public schemas:
+
+| Output | Schema |
+| --- | ---: |
+| Graph JSON | `1.2` |
+| Impact JSON | `1.0` |
+| Graph diff JSON | `1.0` |
+
+Compare two graph exports:
 
 ```bash
-make export-json \
-    PROJECT_PATH=/path/to/project \
-    JSON_OUTPUT=/tmp/phpflow.json \
-    ROUTE=/companies \
-    METHOD=GET
+make diff \
+    BEFORE=/path/before.json \
+    AFTER=/path/after.json \
+    FORMAT=json \
+    OUTPUT=/tmp/phpflow-diff.json
 ```
 
-The top-level `schemaVersion` identifies the contract version:
+A Mermaid exporter is also available for documentation-oriented diagrams.
 
-```json
-{
-    "schemaVersion": "1.2",
-    "nodes": [
-        {
-            "id": "route:GET:/companies",
-            "type": "route",
-            "label": "GET /companies",
-            "metadata": {
-                "entryPoint": true,
-                "route": {
-                    "method": "GET",
-                    "path": "/companies"
-                }
-            }
-        }
-    ],
-    "edges": []
-}
-```
+## What PHPFlow understands today
 
-Nodes expose both their canonical `label` and a UI-oriented `displayLabel`. Callable,
-message, and exception nodes keep the full namespace in `label` while `displayLabel` uses
-the short class name for readability. Structured metadata includes `class`, `shortName`,
-`namespace`, method when relevant, and the real indexed source `file` when PHPFlow knows it.
-Route, database, and HTTP metadata remain structured as before. Every node also exposes an
-`entryPoint` boolean so consumers do not need to infer application roots from graph topology.
+PHPFlow v0.1 focuses on modern Symfony applications and currently understands, among other
+patterns:
 
-Edges expose `source`, `target`, and `type`, plus `label`, source `order`, and propagated
-`context` when those values exist. Consumers should use `schemaVersion` rather than relying
-on PHPFlow's internal object structure. Schema `1.2` remains additive: canonical labels and IDs are unchanged: the original
-`id`, `type`, and `label` fields remain unchanged.
+- PHP declarations, attributes and namespaced symbols;
+- Symfony `#[Route]` controllers and HTTP responses;
+- dependency-injected services and interface-to-implementation resolution;
+- Symfony service aliases from supported PHP configuration;
+- Messenger dispatches, handlers, routing and recursive message flows;
+- repositories, Doctrine DBAL calls and QueryBuilder database effects;
+- common `SELECT`, `INSERT`, `UPDATE` and `DELETE` table effects;
+- external HTTP calls with statically recoverable methods and URLs;
+- conditions, `match`, guards, loops, `try/catch/finally` and exceptions;
+- recursive service/repository chains and cycle detection.
 
-## Mermaid export
+For the precise boundary between **supported**, **partial** and **not supported**, see the
+[v0.1 support matrix](docs/SUPPORT.md).
 
-Export the complete graph:
+> A missing edge means PHPFlow could not prove that relationship from the supported static
+> patterns. It does not prove that the relationship can never happen at runtime.
 
-```bash
-make export-mermaid \
-    PROJECT_PATH=/path/to/project \
-    MERMAID_OUTPUT=/tmp/phpflow.mmd
-```
+## Why static?
 
-Export only the graph reachable from one route:
+PHPFlow is meant to help with codebases that are difficult to understand precisely because
+their behavior is distributed across framework conventions and configuration.
 
-```bash
-make export-mermaid \
-    PROJECT_PATH=/path/to/project \
-    ROUTE='/catalog/{recordId}/sync' \
-    METHOD=POST \
-    MAX_DEPTH=10 \
-    MERMAID_OUTPUT=/tmp/phpflow.mmd
-```
+Static analysis gives it a useful operating model:
 
-The generated `.mmd` file can be rendered by any Mermaid-compatible tool.
+- the target application is not executed;
+- analysis can work without reproducing a full runtime scenario;
+- results can be exported and compared;
+- source-level architecture can be investigated before making a change.
 
-## How it works
+This also makes PHPFlow suitable for sensitive or legacy projects where executing arbitrary
+application code during analysis would be undesirable.
 
-PHPFlow parses PHP source and selected Symfony configuration statically. The analysis builds
-a framework-independent graph whose nodes represent application concepts such as routes,
-methods, messages, handlers, database effects, and HTTP effects.
+## Documentation
 
-The graph can then be traversed from a route or exported independently of the Symfony-specific
-analysis that produced it.
+- [CLI contract](docs/CLI.md) — stable v0.1 commands, exit statuses and output schemas.
+- [Support matrix](docs/SUPPORT.md) — what PHPFlow can and cannot prove today.
+- [Changelog](CHANGELOG.md) — release history.
+- [Release checklist](RELEASE.md) — maintainer release procedure.
 
-PHPFlow deliberately prefers an unresolved or unknown result over guessing.
+## Requirements
 
-## Limitations
-
-PHPFlow is intentionally conservative: it parses source/configuration statically and never
-executes the target application. Dynamic class/method selection, reflection, runtime-generated
-container/framework configuration, and values that only exist at runtime may therefore remain
-unresolved.
-
-See the [v0.1 support matrix](docs/SUPPORT.md) for the authoritative Supported / Partial /
-Not supported contract across Symfony, Messenger, Doctrine/DBAL, HTTP, effects and control flow.
-
-A missing edge means **"PHPFlow could not prove this relationship"**, not
-**"this relationship can never occur at runtime"**.
+The recommended repository setup requires **Docker with Docker Compose** and **GNU Make**.
+The PHP package itself requires **PHP 8.4**.
 
 ## Development
 
-Install dependencies and run tests:
+Install dependencies and run the suite:
 
 ```bash
+make build
 docker compose run --rm php composer install
 make test
 ```
 
-Release-contract checks also run inside the PHP container, so no host PHP installation is required:
+Verify the release contract:
 
 ```bash
 make release-check
+docker compose run --rm php composer validate --strict
 docker compose run --rm php php bin/phpflow --version
 ```
 
-Useful commands:
-
-```bash
-make scan PROJECT_PATH=/path/to/project
-make inspect PROJECT_PATH=/path/to/project ROUTE=/route METHOD=GET
-make inspect PROJECT_PATH=/path/to/project ROUTE=/route METHOD=GET SUMMARY=1
-make impact-message PROJECT_PATH=/path/to/project MESSAGE=SyncCompany
-make export-mermaid PROJECT_PATH=/path/to/project
-```
-
-## Continuous integration
-
-The project test suite is run with:
-
-```bash
-make test
-```
-
-CI providers can use the same command after installing Composer dependencies.
+PHPFlow is currently evolving around real-world Symfony applications. Reproducible examples of
+unsupported static patterns are especially useful when reporting issues.
 
 ## License
 
-PHPFlow is open source software licensed under the [MIT License](LICENSE).
-
-
-### Contextual HTTP wrapper resolution
-
-When an application service forwards an HTTP method and URL through a wrapper such as
-`ClientInterface::request($method, $url, ...)`, PHPFlow carries statically recoverable
-arguments along the inspected call path. An implementation-level call using `$method` and
-`$url` can therefore render the caller-specific endpoint instead of `HTTP <dynamic URL>`.
-
-Service implementation resolution prefers explicit Symfony aliases and production
-implementations. Test-only implementations are not selected as fallback implementations.
-
-
-### Symfony environment-specific service aliases
-
-By default, PHPFlow reads the base `config/services.php` configuration and ignores
-environment-specific overrides such as `services_test.php`. This prevents test mocks from
-silently replacing production implementations during a normal inspection.
-
-The alias reader can still be asked explicitly for an environment when needed; in that case,
-for example, `services_test.php` is applied after the base configuration.
-
-
-Class string constants such as `self::TOKEN_ENDPOINT` are resolved when their value is a
-static string. This allows URLs like `%auth.base_url%/oauth/token` to remain fully visible
-instead of degrading to `{dynamic}`.
-
-
-### Union-typed Messenger handlers
-
-A Messenger handler whose first argument is a named union type, for example
-`FirstCommand|SecondCommand $command`, is registered for every named member of the union.
-This allows each dispatched message to continue through the same handler in the flow graph.
-
-
-### Same-class method calls
-
-PHPFlow follows calls from one method to another method of the same class, including private
-helpers. This is important for infrastructure clients where a public method delegates to a
-private pagination/fetch method that performs the actual HTTP or database effect.
-
-
-### Static `sprintf()` URL construction
-
-PHPFlow resolves simple `sprintf()` calls when the format string is static. Known arguments
-are substituted and unresolved arguments become `{dynamic}` placeholders. This allows
-patterns such as `sprintf('%s/v2/directory/search', $this->baseUrl)` to remain visible in
-HTTP effects and impact analysis.
-
-
-HTTP impact lookup resolves path-specific call context before matching. This means a raw
-graph node such as `{param:method} {param:url}` can still be found by `impact:http` when an
-upstream call supplies a concrete method and URL for that route.
-
-### Viewer exploration improvements
-
-The interactive HTML viewer keeps upstream context when using the Database, External HTTP,
-or Errors exploration presets, so effect nodes remain connected to their entry paths. Selecting
-a search result automatically clears restrictive exploration state to guarantee that the node is
-revealed. Directed edges now include arrowheads and compact edge labels to make flow direction
-and relationship types easier to read.
-
-
-
-### Entry-path highlighting
-
-Selecting a node in the interactive HTML viewer now automatically enables **Entry path** highlighting.
-PHPFlow highlights the shortest directed path from the nearest entry point
-to the selected node and dims unrelated nodes and edges. This makes it easier to understand
-how a route or message reaches a service, database effect, external HTTP call, or error.
-
-
-### Interactive minimap
-
-The self-contained HTML viewer includes a compact minimap in the lower-right corner. It mirrors the currently visible graph, marks entry points, displays the current viewport, and supports click-to-navigate for fast movement across large graphs. The minimap can be shown or hidden from the viewer toolbar.
-
-
-The entry-path highlighter uses a multi-source breadth-first traversal from all graph entry points, making path selection robust on large graphs with shared branches and cycles.
-
-
-### Large-graph viewer resilience
-
-Entry-path highlighting now searches backward from the selected node to the nearest entry
-candidate in the same connected upstream component, instead of scanning forward from global
-entry points. The minimap uses bounded sampling (nodes and edges), document fragments, and
-iterative bounds calculations so large graphs do not duplicate the full SVG workload or hit
-JavaScript argument limits while computing extents.
-
-
-### Async / Messenger boundaries
-
-The HTML viewer now makes asynchronous hand-offs explicit. Message and handler nodes receive
-a dedicated magenta treatment, while dispatch/transport/message boundary edges are rendered
-as dashed magenta arrows. The sidebar legend explains the convention, and the minimap also
-marks async nodes so async regions remain recognizable in large graphs.
-
-
-### Functional lanes
-
-The HTML viewer can now overlay lightweight functional lanes to make large graphs easier to
-scan. Nodes are grouped into Entry / HTTP, Application, Async / Messenger, Persistence,
-External Effects, and Other. Lanes are enabled by default and can be toggled from the toolbar
-without changing the underlying graph or exported JSON.
-
-
-### Path to effects
-
-Selecting a node in the HTML viewer can now reveal only the downstream paths that eventually
-reach important effects: database operations, external HTTP calls, mail, filesystem, cache,
-or exceptions. The mode is cycle-safe, preserves every upstream branch that contributes to
-an effect, highlights those paths in orange, and dims unrelated nodes and edges. The details
-panel shows how many distinct effect nodes are reachable from the selection.
-
-
-### Critical path
-
-The HTML viewer can now isolate the complete flow around any selected node. Critical path
-combines its nearest upstream entry path with every downstream path that reaches an important
-effect. The resulting entry point → selection → effects flow is highlighted in purple while
-unrelated graph elements are strongly dimmed. It reuses the cycle-safe entry/effect traversal
-and remains a viewer-only feature, leaving the graph JSON schema unchanged.
-
-
-## v0.1 stabilization hardening
-
-The pre-v0.1 stabilization pass tightens CLI contracts without changing graph semantics:
-
-- route-scoped HTML, JSON and Mermaid exports share the same normalized HTTP method, route,
-  and positive `--max-depth` validation;
-- invalid export options fail before scanning the target project;
-- `diff` validates its output format before reading graph files;
-- graph diffs refuse to compare exports with different graph schema versions, preventing
-  misleading change sets across incompatible contracts;
-- graph JSON remains schema `1.2`; impact JSON and graph-diff JSON remain schema `1.0`.
+PHPFlow is released under the [MIT License](LICENSE).
