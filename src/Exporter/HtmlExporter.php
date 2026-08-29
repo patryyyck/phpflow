@@ -43,7 +43,7 @@ button{border:1px solid #cbd3dd;background:#fff;border-radius:7px;padding:7px 10
 .search{margin:14px 0}.search input{width:100%;border:1px solid #cbd3dd;border-radius:7px;padding:8px 10px;font-size:13px}.search-results{margin-top:6px;max-height:220px;overflow:auto}.search-result{display:block;width:100%;text-align:left;border:0;border-radius:5px;padding:7px;background:transparent}.search-result:hover,.search-result.active{background:#eef2f7}.search-result strong{display:block;font-size:12px}.search-result span{display:block;color:#687386;font-size:10px;margin-top:2px}.search-empty{font-size:11px;color:#687386;padding:6px}.node.search-match circle{stroke:#f59e0b;stroke-width:5}.filter{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px}.swatch{width:10px;height:10px;border-radius:50%;display:inline-block}
 main{position:relative;overflow:hidden}.canvas{width:100%;height:100%;cursor:grab}.canvas.dragging{cursor:grabbing}
 .minimap-wrap{position:absolute;right:18px;bottom:18px;width:240px;height:165px;background:#fff;border:2px solid #94a3b8;border-radius:10px;box-shadow:0 8px 24px rgba(15,23,42,.22);overflow:hidden;z-index:20}.minimap{width:100%;height:100%;cursor:crosshair}.lane{fill:rgba(148,163,184,.06);stroke:#e2e8f0;stroke-width:1}.lane-label{font-size:10px;font-weight:800;fill:#64748b;letter-spacing:.08em}.lane-separator{stroke:#e2e8f0;stroke-width:1;stroke-dasharray:4 4}.minimap-node{fill:#94a3b8}.minimap-node.entry{fill:#2563eb}.minimap-node.async{fill:#c026d3}.minimap-edge{stroke:#cbd5e1;stroke-width:1;fill:none}.minimap-viewport{fill:rgba(37,99,235,.08);stroke:#2563eb;stroke-width:1.5;pointer-events:none}.minimap-label{position:absolute;top:6px;left:8px;font-size:10px;font-weight:700;color:#64748b;pointer-events:none}.minimap-wrap.hidden{display:none}
-.edge{stroke:#aeb7c4;stroke-width:1.35;fill:none;marker-end:url(#arrow)}.edge.async-boundary{stroke:#c026d3;stroke-width:2.4;stroke-dasharray:8 5;marker-end:url(#arrow-async)}.edge-label{font-size:9px;fill:#64748b;pointer-events:none;paint-order:stroke;stroke:#fff;stroke-width:3;stroke-linejoin:round}.edge-label.async-boundary{fill:#a21caf;font-weight:800}.node circle{stroke:#fff;stroke-width:2;filter:drop-shadow(0 1px 2px rgba(15,23,42,.16))}.node.async-node circle{stroke:#c026d3;stroke-width:3}.async-badge{font-size:8px;font-weight:800;fill:#a21caf;paint-order:stroke;stroke:#fff;stroke-width:3}.node text{font-size:11px;pointer-events:none;fill:#263244}.node.selected circle{stroke:#111827;stroke-width:4}.node.dimmed{opacity:.18}.edge.highlighted{stroke:#334155;stroke-width:2.6}.edge.path-highlighted{stroke:#2563eb;stroke-width:4;opacity:1;marker-end:url(#arrow-path)}.edge.dimmed{opacity:.08}.edge-label.dimmed{opacity:.08}.edge-label.highlighted{font-weight:700;fill:#334155}.edge-label.path-highlighted{font-weight:800;fill:#1d4ed8}.node.path-highlighted circle{stroke:#2563eb;stroke-width:5;filter:drop-shadow(0 0 4px rgba(37,99,235,.45))}.node.path-highlighted text{font-weight:700;fill:#1d4ed8}.nav-actions button.active{background:#111827;color:#fff}.toggle{cursor:pointer}.toggle text{font-size:13px;font-weight:700;fill:#fff;text-anchor:middle;dominant-baseline:central}.nav-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}.nav-actions button{font-size:11px}.hidden-count{font-size:10px;fill:#64748b}
+.edge{stroke:#aeb7c4;stroke-width:1.35;fill:none;marker-end:url(#arrow)}.edge.async-boundary{stroke:#c026d3;stroke-width:2.4;stroke-dasharray:8 5;marker-end:url(#arrow-async)}.edge-label{font-size:9px;fill:#64748b;pointer-events:none;paint-order:stroke;stroke:#fff;stroke-width:3;stroke-linejoin:round}.edge-label.async-boundary{fill:#a21caf;font-weight:800}.node circle{stroke:#fff;stroke-width:2;filter:drop-shadow(0 1px 2px rgba(15,23,42,.16))}.node.async-node circle{stroke:#c026d3;stroke-width:3}.async-badge{font-size:8px;font-weight:800;fill:#a21caf;paint-order:stroke;stroke:#fff;stroke-width:3}.node text{font-size:11px;pointer-events:none;fill:#263244}.node.selected circle{stroke:#111827;stroke-width:4}.node.dimmed{opacity:.18}.edge.highlighted{stroke:#334155;stroke-width:2.6}.edge.path-highlighted{stroke:#2563eb;stroke-width:4;opacity:1;marker-end:url(#arrow-path)}.edge.effect-highlighted{stroke:#ea580c;stroke-width:3.6;opacity:1;marker-end:url(#arrow-effect)}.edge.dimmed{opacity:.08}.edge-label.dimmed{opacity:.08}.edge-label.highlighted{font-weight:700;fill:#334155}.edge-label.path-highlighted{font-weight:800;fill:#1d4ed8}.edge-label.effect-highlighted{font-weight:800;fill:#c2410c}.node.path-highlighted circle{stroke:#2563eb;stroke-width:5;filter:drop-shadow(0 0 4px rgba(37,99,235,.45))}.node.path-highlighted text{font-weight:700;fill:#1d4ed8}.node.effect-highlighted circle{stroke:#ea580c;stroke-width:5;filter:drop-shadow(0 0 4px rgba(234,88,12,.4))}.node.effect-highlighted text{font-weight:700;fill:#c2410c}.effect-badge{font-size:8px;font-weight:800;fill:#c2410c;paint-order:stroke;stroke:#fff;stroke-width:3}.nav-actions button.active{background:#111827;color:#fff}.toggle{cursor:pointer}.toggle text{font-size:13px;font-weight:700;fill:#fff;text-anchor:middle;dominant-baseline:central}.nav-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}.nav-actions button{font-size:11px}.hidden-count{font-size:10px;fill:#64748b}
 .empty{padding:16px;color:#687386}.kv{font-size:12px;margin:8px 0}.kv strong{display:block;color:#687386;margin-bottom:2px}.json{white-space:pre-wrap;word-break:break-word;font:11px ui-monospace,SFMono-Regular,Menlo,monospace;background:#f6f8fa;padding:10px;border-radius:7px}
 .preset-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}.preset-grid button{font-size:11px;padding:6px}.preset-grid button.active{background:#111827;color:#fff}.compact-option{display:flex;align-items:center;gap:8px;font-size:12px;margin-top:9px}.badge{display:inline-block;padding:3px 7px;border-radius:999px;background:#eef2f7;font-size:11px}
 </style>
@@ -95,7 +95,7 @@ graph.edges.forEach(e=>{
  if(incoming.has(e.target)){incoming.get(e.target).push(e.source);incomingEdges.get(e.target).push(e)}
 });
 const width=()=>svg.clientWidth||900,height=()=>svg.clientHeight||700;
-let scale=1,tx=0,ty=0,drag=null,selected=null,focusRoot=null,directOnly=false,pathOnly=false,searchQuery='',searchMatches=[],explorePreset='all',hideTechnical=false,minimapState=null,showLanes=true;
+let scale=1,tx=0,ty=0,drag=null,selected=null,focusRoot=null,directOnly=false,pathOnly=false,effectsOnly=false,searchQuery='',searchMatches=[],explorePreset='all',hideTechnical=false,minimapState=null,showLanes=true;
 const collapsed=new Set(),positions=new Map();
 
 function el(name,attrs={}){const x=document.createElementNS(NS,name);for(const[k,v]of Object.entries(attrs))x.setAttribute(k,v);return x}
@@ -111,6 +111,33 @@ function isAsyncBoundary(e){
  if(source?.type==='message'&&target?.type==='handler')return true;
  if(source?.type!=='message'&&target?.type==='message')return true;
  return false;
+}
+const effectTypes=new Set(['database','http_endpoint','mail','filesystem','cache','exception']);
+function isEffectNode(n){return Boolean(n&&effectTypes.has(n.type))}
+function pathsToEffects(id){
+ if(!nodeById.has(id))return null;
+ const reachable=new Set([id]),q=[id],forwardEdges=[];
+ while(q.length){
+  const current=q.shift();
+  for(const edge of outgoingEdges.get(current)||[]){
+   forwardEdges.push(edge);
+   if(!reachable.has(edge.target)){reachable.add(edge.target);q.push(edge.target)}
+  }
+ }
+ const effectIds=[...reachable].filter(x=>isEffectNode(nodeById.get(x)));
+ if(!effectIds.length)return null;
+ const neededNodes=new Set(effectIds),neededEdges=new Set(),back=[...effectIds];
+ while(back.length){
+  const current=back.shift();
+  if(current===id)continue;
+  for(const edge of incomingEdges.get(current)||[]){
+   if(!reachable.has(edge.source))continue;
+   if(!neededEdges.has(edgeKey(edge))){neededEdges.add(edgeKey(edge))}
+   if(!neededNodes.has(edge.source)){neededNodes.add(edge.source);back.push(edge.source)}
+  }
+ }
+ if(!neededNodes.has(id))neededNodes.add(id);
+ return {nodes:neededNodes,edgeKeys:neededEdges,effects:new Set(effectIds)};
 }
 function isEntryCandidate(id){
  const n=nodeById.get(id);if(!n)return false;
@@ -169,13 +196,13 @@ function updateSearch(){
  render();
 }
 function revealNode(id){
- focusRoot=null;directOnly=false;pathOnly=false;explorePreset='all';hideTechnical=false;
+ focusRoot=null;directOnly=false;pathOnly=false;effectsOnly=false;explorePreset='all';hideTechnical=false;
  document.getElementById('hide-technical').checked=false;updatePresetButtons();
  for(const parent of ancestors(id))collapsed.delete(parent);
  const n=nodeById.get(id);if(n&&!enabled.has(n.type)){enabled.add(n.type);syncFilters()}
 }
 function selectSearchResult(n){
- revealNode(n.id);selected=n.id;pathOnly=Boolean(pathFromEntryPoint(n.id));showDetails(n);render();centerOn(n.id);
+ revealNode(n.id);selected=n.id;effectsOnly=false;pathOnly=Boolean(pathFromEntryPoint(n.id));showDetails(n);render();centerOn(n.id);
  const buttons=document.querySelectorAll('.search-result');buttons.forEach(b=>b.classList.toggle('active',searchMatches[Number(b.dataset.searchIndex)]?.id===n.id));
 }
 function syncFilters(){
@@ -200,7 +227,7 @@ function updatePresetButtons(){
  document.querySelectorAll('[data-preset]').forEach(b=>b.classList.toggle('active',b.dataset.preset===explorePreset));
 }
 function setPreset(name){
- explorePreset=name;focusRoot=null;directOnly=false;pathOnly=false;updatePresetButtons();render();requestAnimationFrame(fit);
+ explorePreset=name;focusRoot=null;directOnly=false;pathOnly=false;effectsOnly=false;updatePresetButtons();render();requestAnimationFrame(fit);
 }
 function presetVisibleIds(){
  if(explorePreset==='all')return new Set(graph.nodes.map(n=>n.id));
@@ -340,7 +367,9 @@ function render(){
  const pathMarker=el('marker',{id:'arrow-path',viewBox:'0 0 10 10',refX:'9',refY:'5',markerWidth:'7',markerHeight:'7',orient:'auto-start-reverse'});
  pathMarker.appendChild(el('path',{d:'M 0 0 L 10 5 L 0 10 z',fill:'#2563eb'}));defs.appendChild(pathMarker);
  const asyncMarker=el('marker',{id:'arrow-async',viewBox:'0 0 10 10',refX:'9',refY:'5',markerWidth:'7',markerHeight:'7',orient:'auto-start-reverse'});
- asyncMarker.appendChild(el('path',{d:'M 0 0 L 10 5 L 0 10 z',fill:'#c026d3'}));defs.appendChild(asyncMarker);svg.appendChild(defs);
+ asyncMarker.appendChild(el('path',{d:'M 0 0 L 10 5 L 0 10 z',fill:'#c026d3'}));defs.appendChild(asyncMarker);
+ const effectMarker=el('marker',{id:'arrow-effect',viewBox:'0 0 10 10',refX:'9',refY:'5',markerWidth:'7',markerHeight:'7',orient:'auto-start-reverse'});
+ effectMarker.appendChild(el('path',{d:'M 0 0 L 10 5 L 0 10 z',fill:'#ea580c'}));defs.appendChild(effectMarker);svg.appendChild(defs);
  const viewport=el('g',{transform:`translate(${tx} ${ty}) scale(${scale})`});svg.appendChild(viewport);
  if(showLanes&&ids.size){
   const groups=laneGroups(ids),b=graphBounds();
@@ -356,32 +385,35 @@ function render(){
    });
   }
  }
- let highlight=new Set(),selectedPath=selected&&pathOnly?pathFromEntryPoint(selected):null;
+ let highlight=new Set(),selectedPath=selected&&pathOnly?pathFromEntryPoint(selected):null,selectedEffects=selected&&effectsOnly?pathsToEffects(selected):null;
  if(selected){highlight.add(selected);if(directOnly){(outgoing.get(selected)||[]).forEach(x=>highlight.add(x));(incoming.get(selected)||[]).forEach(x=>highlight.add(x))}}
  graph.edges.filter(e=>ids.has(e.source)&&ids.has(e.target)).forEach(e=>{
   const a=positions.get(e.source),b=positions.get(e.target);if(!a||!b)return;
   let cls='edge';
   const asyncBoundary=isAsyncBoundary(e);
   if(asyncBoundary)cls+=' async-boundary';
-  if(pathOnly&&selectedPath)cls+=selectedPath.edgeKeys.has(edgeKey(e))?' path-highlighted':' dimmed';
+  if(effectsOnly&&selectedEffects)cls+=selectedEffects.edgeKeys.has(edgeKey(e))?' effect-highlighted':' dimmed';
+  else if(pathOnly&&selectedPath)cls+=selectedPath.edgeKeys.has(edgeKey(e))?' path-highlighted':' dimmed';
   else if(directOnly&&selected)cls+=(highlight.has(e.source)&&highlight.has(e.target))?' highlighted':' dimmed';
   const startX=a.x+18,endX=b.x-18,midX=(startX+endX)/2;
   viewport.appendChild(el('path',{d:`M ${startX} ${a.y} C ${midX} ${a.y}, ${midX} ${b.y}, ${endX} ${b.y}`,class:cls}));
   const edgeText=e.label||e.type;
   if(edgeText){
-   const label=el('text',{x:midX,y:(a.y+b.y)/2-6,class:`edge-label${asyncBoundary?' async-boundary':''}${cls.includes(' highlighted')?' highlighted':''}${cls.includes(' path-highlighted')?' path-highlighted':''}${cls.includes(' dimmed')?' dimmed':''}`});
+   const label=el('text',{x:midX,y:(a.y+b.y)/2-6,class:`edge-label${asyncBoundary?' async-boundary':''}${cls.includes(' highlighted')?' highlighted':''}${cls.includes(' path-highlighted')?' path-highlighted':''}${cls.includes(' effect-highlighted')?' effect-highlighted':''}${cls.includes(' dimmed')?' dimmed':''}`});
    label.textContent=edgeText.length>28?edgeText.slice(0,25)+'…':edgeText;viewport.appendChild(label);
   }
  });
  graph.nodes.filter(n=>ids.has(n.id)).forEach(n=>{
   const p=positions.get(n.id);let cls=`node${selected===n.id?' selected':''}${isAsyncNode(n)?' async-node':''}`;
   if(searchQuery.trim()&&searchableText(n).includes(searchQuery.trim().toLowerCase()))cls+=' search-match';
-  if(pathOnly&&selectedPath)cls+=selectedPath.nodes.has(n.id)?' path-highlighted':' dimmed';
+  if(effectsOnly&&selectedEffects)cls+=selectedEffects.nodes.has(n.id)?' effect-highlighted':' dimmed';
+  else if(pathOnly&&selectedPath)cls+=selectedPath.nodes.has(n.id)?' path-highlighted':' dimmed';
   else if(directOnly&&selected&&!highlight.has(n.id))cls+=' dimmed';
   const g=el('g',{class:cls,transform:`translate(${p.x} ${p.y})`});
   g.appendChild(el('circle',{r:17,fill:colors[n.type]||'#475569'}));
   const label=el('text',{x:25,y:4});const shown=n.displayLabel||n.label;label.textContent=shown.length>52?shown.slice(0,49)+'…':shown;g.appendChild(label);
   if(isAsyncNode(n)){const badge=el('text',{x:25,y:17,class:'async-badge'});badge.textContent=n.type==='message'?'ASYNC MESSAGE':'ASYNC HANDLER';g.appendChild(badge)}
+  if(isEffectNode(n)){const badge=el('text',{x:25,y:isAsyncNode(n)?29:17,class:'effect-badge'});badge.textContent='EFFECT';g.appendChild(badge)}
   const children=(outgoing.get(n.id)||[]).filter(id=>enabled.has(nodeById.get(id)?.type));
   if(children.length){
    const toggle=el('g',{class:'toggle',transform:'translate(-24 0)'});
@@ -391,20 +423,20 @@ function render(){
    g.appendChild(toggle);
    if(collapsed.has(n.id)){const count=el('text',{x:-39,y:25,class:'hidden-count'});count.textContent=`${descendants(n.id).size} hidden`;g.appendChild(count)}
   }
-  g.addEventListener('click',ev=>{ev.stopPropagation();selected=n.id;directOnly=false;pathOnly=Boolean(pathFromEntryPoint(n.id));showDetails(n);render()});viewport.appendChild(g);
+  g.addEventListener('click',ev=>{ev.stopPropagation();selected=n.id;directOnly=false;effectsOnly=false;pathOnly=Boolean(pathFromEntryPoint(n.id));showDetails(n);render()});viewport.appendChild(g);
  });
  renderMinimap(ids);
- document.getElementById('stats').textContent=`Schema ${graph.schemaVersion} · ${ids.size}/${graph.nodes.length} nodes · ${graph.edges.length} edges${focusRoot?' · focused':''}${pathOnly?' · entry path':''}${explorePreset!=='all'?` · ${explorePreset.replace('_',' ')}`:''}${hideTechnical?' · technical hidden':''}`;
+ document.getElementById('stats').textContent=`Schema ${graph.schemaVersion} · ${ids.size}/${graph.nodes.length} nodes · ${graph.edges.length} edges${focusRoot?' · focused':''}${pathOnly?' · entry path':''}${effectsOnly?' · effects path':''}${explorePreset!=='all'?` · ${explorePreset.replace('_',' ')}`:''}${hideTechnical?' · technical hidden':''}`;
 }
 function showDetails(n){
- const direct=graph.edges.filter(e=>e.source===n.id||e.target===n.id),entry=entryPointFor(n.id),children=(outgoing.get(n.id)||[]).length;
+ const direct=graph.edges.filter(e=>e.source===n.id||e.target===n.id),entry=entryPointFor(n.id),children=(outgoing.get(n.id)||[]).length,effectPaths=pathsToEffects(n.id),effectCount=effectPaths?.effects.size||0;
  const ref=n.metadata?.callable||n.metadata?.message||n.metadata?.exception||null;
  const sourceDetails=ref?`<div class="kv"><strong>Class</strong>${escapeHtml(ref.shortName||'')}</div><div class="kv"><strong>Namespace</strong>${escapeHtml(ref.namespace||'—')}</div>${ref.method!==undefined?`<div class="kv"><strong>Method</strong>${escapeHtml(ref.method||'—')}</div>`:''}<div class="kv"><strong>FQCN</strong>${escapeHtml(ref.class||'')}</div><div class="kv"><strong>File</strong>${escapeHtml(ref.file||'Unknown')}</div>`:'';
- document.getElementById('details').innerHTML=`<div class="kv"><strong>Type</strong><span class="badge">${escapeHtml(n.type)}</span></div><div class="kv"><strong>Display label</strong>${escapeHtml(n.displayLabel||n.label)}</div>${sourceDetails}<div class="kv"><strong>Canonical label</strong>${escapeHtml(n.label)}</div><div class="kv"><strong>ID</strong>${escapeHtml(n.id)}</div><div class="kv"><strong>Direct connections</strong>${direct.length}</div><div class="kv"><strong>Descendants</strong>${descendants(n.id).size}</div>${entry?`<div class="kv"><strong>Entry point</strong>${escapeHtml(entry.displayLabel||entry.label)}</div>`:''}<div class="nav-actions"><button id="focus-node">Focus branch</button><button id="direct-node"${directOnly?' class="active"':''}>Direct only</button>${entry?`<button id="path-node"${pathOnly?' class="active"':''}>Entry path</button>`:''}${entry&&entry.id!==n.id?'<button id="entry-node">Go to entry point</button>':''}${children?`<button id="toggle-node">${collapsed.has(n.id)?'Expand':'Collapse'} branch</button>`:''}${focusRoot?'<button id="clear-focus">Clear focus</button>':''}</div><div class="kv"><strong>Metadata</strong><div class="json">${escapeHtml(JSON.stringify(n.metadata||{},null,2))}</div></div>`;
- document.getElementById('focus-node').onclick=()=>{focusRoot=n.id;directOnly=false;pathOnly=false;fit()};
- document.getElementById('direct-node').onclick=()=>{directOnly=!directOnly;pathOnly=false;showDetails(n);render()};
+ document.getElementById('details').innerHTML=`<div class="kv"><strong>Type</strong><span class="badge">${escapeHtml(n.type)}</span></div><div class="kv"><strong>Display label</strong>${escapeHtml(n.displayLabel||n.label)}</div>${sourceDetails}<div class="kv"><strong>Canonical label</strong>${escapeHtml(n.label)}</div><div class="kv"><strong>ID</strong>${escapeHtml(n.id)}</div><div class="kv"><strong>Direct connections</strong>${direct.length}</div><div class="kv"><strong>Descendants</strong>${descendants(n.id).size}</div>${entry?`<div class="kv"><strong>Entry point</strong>${escapeHtml(entry.displayLabel||entry.label)}</div>`:''}<div class="nav-actions"><button id="focus-node">Focus branch</button><button id="direct-node"${directOnly?' class="active"':''}>Direct only</button>${entry?`<button id="path-node"${pathOnly?' class="active"':''}>Entry path</button>`:''}${effectCount?`<button id="effects-node"${effectsOnly?' class="active"':''}>Path to effects (${effectCount})</button>`:''}${entry&&entry.id!==n.id?'<button id="entry-node">Go to entry point</button>':''}${children?`<button id="toggle-node">${collapsed.has(n.id)?'Expand':'Collapse'} branch</button>`:''}${focusRoot?'<button id="clear-focus">Clear focus</button>':''}</div><div class="kv"><strong>Metadata</strong><div class="json">${escapeHtml(JSON.stringify(n.metadata||{},null,2))}</div></div>`;
+ document.getElementById('focus-node').onclick=()=>{focusRoot=n.id;directOnly=false;pathOnly=false;effectsOnly=false;fit()};
+ document.getElementById('direct-node').onclick=()=>{directOnly=!directOnly;pathOnly=false;effectsOnly=false;showDetails(n);render()};
  const pn=document.getElementById('path-node');if(pn)pn.onclick=()=>{
- pathOnly=!pathOnly;directOnly=false;
+ pathOnly=!pathOnly;directOnly=false;effectsOnly=false;
  if(pathOnly){
   for(const parent of ancestors(n.id))collapsed.delete(parent);
   const path=pathFromEntryPoint(n.id);
@@ -412,9 +444,17 @@ function showDetails(n){
  }
  showDetails(n);render();
 };
- const ep=document.getElementById('entry-node');if(ep)ep.onclick=()=>{selected=entry.id;focusRoot=null;directOnly=false;pathOnly=false;showDetails(entry);render();centerOn(entry.id)};
+ const en=document.getElementById('effects-node');if(en)en.onclick=()=>{
+ effectsOnly=!effectsOnly;directOnly=false;pathOnly=false;
+ if(effectsOnly&&effectPaths){
+  effectPaths.nodes.forEach(id=>{const node=nodeById.get(id);if(node)enabled.add(node.type)});
+  syncFilters();
+ }
+ showDetails(n);render();
+};
+ const ep=document.getElementById('entry-node');if(ep)ep.onclick=()=>{selected=entry.id;focusRoot=null;directOnly=false;pathOnly=false;effectsOnly=false;showDetails(entry);render();centerOn(entry.id)};
  const tg=document.getElementById('toggle-node');if(tg)tg.onclick=()=>{collapsed.has(n.id)?collapsed.delete(n.id):collapsed.add(n.id);showDetails(n);render()};
- const cf=document.getElementById('clear-focus');if(cf)cf.onclick=()=>{focusRoot=null;directOnly=false;pathOnly=false;fit()};
+ const cf=document.getElementById('clear-focus');if(cf)cf.onclick=()=>{focusRoot=null;directOnly=false;pathOnly=false;effectsOnly=false;fit()};
 }
 function centerOn(id){const p=positions.get(id);if(!p)return;tx=width()/2-p.x*scale;ty=height()/2-p.y*scale;render()}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -424,13 +464,13 @@ svg.addEventListener('mousedown',e=>drag={x:e.clientX-tx,y:e.clientY-ty});window
 svg.addEventListener('wheel',e=>{e.preventDefault();const old=scale;scale=Math.max(.2,Math.min(3,scale*(e.deltaY<0?1.12:.89)));tx=e.offsetX-(e.offsetX-tx)*(scale/old);ty=e.offsetY-(e.offsetY-ty)*(scale/old);render()},{passive:false});
 minimap.addEventListener('mousedown',e=>{e.preventDefault();e.stopPropagation();navigateFromMinimap(e.clientX,e.clientY)});
 minimap.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();navigateFromMinimap(e.clientX,e.clientY)});
-svg.addEventListener('click',()=>{selected=null;directOnly=false;pathOnly=false;document.getElementById('details').innerHTML='<div class="empty">Select a node in the graph.</div>';render()});
+svg.addEventListener('click',()=>{selected=null;directOnly=false;pathOnly=false;effectsOnly=false;document.getElementById('details').innerHTML='<div class="empty">Select a node in the graph.</div>';render()});
 const searchInput=document.getElementById('search');
 searchInput.addEventListener('input',()=>{searchQuery=searchInput.value;updateSearch()});
 searchInput.addEventListener('keydown',e=>{if(e.key==='Enter'&&searchMatches.length){e.preventDefault();selectSearchResult(searchMatches[0])}if(e.key==='Escape'){searchInput.value='';searchQuery='';searchMatches=[];document.getElementById('search-results').innerHTML='';render()}});
 document.querySelectorAll('[data-preset]').forEach(button=>button.onclick=()=>setPreset(button.dataset.preset));
 document.getElementById('hide-technical').onchange=e=>{hideTechnical=e.target.checked;render();requestAnimationFrame(fit)};
-document.getElementById('fit').onclick=fit;document.getElementById('toggle-minimap').onclick=()=>{const wrap=document.getElementById('minimap-wrap'),button=document.getElementById('toggle-minimap'),hidden=wrap.classList.toggle('hidden');button.classList.toggle('active',!hidden);button.textContent=hidden?'Minimap off':'Minimap on'};document.getElementById('toggle-lanes').onclick=()=>{showLanes=!showLanes;const button=document.getElementById('toggle-lanes');button.classList.toggle('active',showLanes);button.textContent=showLanes?'Lanes on':'Lanes off';render()};document.getElementById('reset').onclick=()=>{scale=1;tx=0;ty=0;focusRoot=null;directOnly=false;pathOnly=false;explorePreset='all';hideTechnical=false;showLanes=true;document.getElementById('toggle-lanes').classList.add('active');document.getElementById('toggle-lanes').textContent='Lanes on';document.getElementById('hide-technical').checked=false;collapsed.clear();enabled.clear();types.forEach(type=>enabled.add(type));syncFilters();updatePresetButtons();render()};buildFilters();render();requestAnimationFrame(fit);
+document.getElementById('fit').onclick=fit;document.getElementById('toggle-minimap').onclick=()=>{const wrap=document.getElementById('minimap-wrap'),button=document.getElementById('toggle-minimap'),hidden=wrap.classList.toggle('hidden');button.classList.toggle('active',!hidden);button.textContent=hidden?'Minimap off':'Minimap on'};document.getElementById('toggle-lanes').onclick=()=>{showLanes=!showLanes;const button=document.getElementById('toggle-lanes');button.classList.toggle('active',showLanes);button.textContent=showLanes?'Lanes on':'Lanes off';render()};document.getElementById('reset').onclick=()=>{scale=1;tx=0;ty=0;focusRoot=null;directOnly=false;pathOnly=false;effectsOnly=false;explorePreset='all';hideTechnical=false;showLanes=true;document.getElementById('toggle-lanes').classList.add('active');document.getElementById('toggle-lanes').textContent='Lanes on';document.getElementById('hide-technical').checked=false;collapsed.clear();enabled.clear();types.forEach(type=>enabled.add(type));syncFilters();updatePresetButtons();render()};buildFilters();render();requestAnimationFrame(fit);
 </script>
 </body>
 </html>

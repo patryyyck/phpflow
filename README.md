@@ -657,3 +657,12 @@ The HTML viewer can now overlay lightweight functional lanes to make large graph
 scan. Nodes are grouped into Entry / HTTP, Application, Async / Messenger, Persistence,
 External Effects, and Other. Lanes are enabled by default and can be toggled from the toolbar
 without changing the underlying graph or exported JSON.
+
+
+### Path to effects
+
+Selecting a node in the HTML viewer can now reveal only the downstream paths that eventually
+reach important effects: database operations, external HTTP calls, mail, filesystem, cache,
+or exceptions. The mode is cycle-safe, preserves every upstream branch that contributes to
+an effect, highlights those paths in orange, and dims unrelated nodes and edges. The details
+panel shows how many distinct effect nodes are reachable from the selection.

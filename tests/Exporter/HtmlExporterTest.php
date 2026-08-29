@@ -73,6 +73,11 @@ final class HtmlExporterTest extends TestCase
         self::assertStringContainsString('Async / Messenger boundary', $html);
         self::assertStringContainsString('id="toggle-lanes"', $html);
         self::assertStringContainsString('function laneForNode(n)', $html);
+        self::assertStringContainsString('function pathsToEffects(id)', $html);
+        self::assertStringContainsString("const effectTypes=new Set(['database','http_endpoint','mail','filesystem','cache','exception'])", $html);
+        self::assertStringContainsString("id:'arrow-effect'", $html);
+        self::assertStringContainsString('Path to effects', $html);
+        self::assertStringContainsString('effect-highlighted', $html);
         self::assertStringContainsString("label:'ENTRY / HTTP'", $html);
         self::assertStringContainsString("label:'ASYNC / MESSENGER'", $html);
         self::assertStringContainsString("label:'PERSISTENCE'", $html);
