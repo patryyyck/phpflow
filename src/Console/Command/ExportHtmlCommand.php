@@ -8,6 +8,7 @@ use PhpFlow\Application\AnalyzeProject;
 use PhpFlow\Application\BuildFlowGraph;
 use PhpFlow\Application\ExtractSubgraph;
 use PhpFlow\Application\ScanProject;
+use PhpFlow\Console\ExportRouteOptions;
 use PhpFlow\Exporter\HtmlExporter;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -45,22 +46,37 @@ final class ExportHtmlCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $io = new SymfonyStyle($input, $output);
+
+        try {
+            $routeOptions = ExportRouteOptions::from(
+                $input->getOption('route'),
+                $input->getOption('method'),
+                $input->getOption('max-depth'),
+            );
+        } catch (\InvalidArgumentException $exception) {
+            $io->error($exception->getMessage());
+
+            return Command::INVALID;
+        }
+
         $project = $this->scanProject->scan((string) $input->getArgument('path'));
         $analysis = $this->analyzer->analyze($project);
         $graph = $this->graphBuilder->build($analysis);
-        $route = $input->getOption('route');
-
-        if (is_string($route) && $route !== '') {
-            $method = strtoupper((string) $input->getOption('method'));
+        if ($routeOptions->startNodeId() !== null) {
             $subgraph = $this->subgraphExtractor->from(
                 $graph,
-                sprintf('route:%s:%s', $method, $route),
-                (int) $input->getOption('max-depth'),
+                $routeOptions->startNodeId(),
+                $routeOptions->maxDepth(),
             );
 
             if ($subgraph === null) {
-                (new SymfonyStyle($input, $output))->error(
-                    sprintf('Route "%s %s" was not found in the graph.', $method, $route),
+                $io->error(
+                    sprintf(
+                        'Route "%s %s" was not found in the graph.',
+                        $routeOptions->method(),
+                        $routeOptions->route(),
+                    ),
                 );
 
                 return Command::FAILURE;
@@ -80,7 +96,7 @@ final class ExportHtmlCommand extends Command
             throw new \RuntimeException(sprintf('Unable to write HTML file "%s".', $outputFile));
         }
 
-        (new SymfonyStyle($input, $output))->success('Interactive HTML graph generated successfully.');
+        $io->success('Interactive HTML graph generated successfully.');
 
         return Command::SUCCESS;
     }

@@ -89,7 +89,7 @@ final class ImpactCommand extends Command
             return Command::INVALID;
         }
 
-        $format = strtolower((string) $input->getOption('format'));
+        $format = strtolower(trim((string) $input->getOption('format')));
 
         if (!in_array($format, ['text', 'json'], true)) {
             $io->error('Format must be text or json.');

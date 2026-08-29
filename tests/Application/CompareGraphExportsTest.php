@@ -99,6 +99,25 @@ final class CompareGraphExportsTest extends TestCase
      * @param list<array<string, mixed>> $nodes
      * @param list<array<string, mixed>> $edges
      */
+    public function testItRejectsDifferentGraphSchemaVersions(): void
+    {
+        $before = json_encode([
+            'schemaVersion' => '1.1',
+            'nodes' => [],
+            'edges' => [],
+        ], JSON_THROW_ON_ERROR);
+        $after = json_encode([
+            'schemaVersion' => '1.2',
+            'nodes' => [],
+            'edges' => [],
+        ], JSON_THROW_ON_ERROR);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Cannot compare PHPFlow graph schemas 1.1 and 1.2.');
+
+        (new CompareGraphExports())->compare($before, $after);
+    }
+
     private function graph(array $nodes, array $edges): string
     {
         return json_encode(

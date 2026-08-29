@@ -7,6 +7,7 @@ namespace PhpFlow\Console\Command;
 use PhpFlow\Application\BuildFlowGraph;
 use PhpFlow\Application\ExtractSubgraph;
 use PhpFlow\Application\ScanProject;
+use PhpFlow\Console\ExportRouteOptions;
 use PhpFlow\Application\AnalyzeProject;
 use PhpFlow\Exporter\MermaidExporter;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -71,24 +72,40 @@ final class ExportMermaidCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $io = new SymfonyStyle($input, $output);
+
+        try {
+            $routeOptions = ExportRouteOptions::from(
+                $input->getOption('route'),
+                $input->getOption('method'),
+                $input->getOption('max-depth'),
+            );
+        } catch (\InvalidArgumentException $exception) {
+            $io->error($exception->getMessage());
+
+            return Command::INVALID;
+        }
+
         $path = (string) $input->getArgument('path');
 
         $project = $this->scanProject->scan($path);
         $analysis = $this->analyzer->analyze($project);
         $graph = $this->graphBuilder->build($analysis);
 
-        $route = $input->getOption('route');
-
-        if (is_string($route) && $route !== '') {
-            $method = strtoupper((string) $input->getOption('method'));
-            $maxDepth = (int) $input->getOption('max-depth');
-            $startNodeId = sprintf('route:%s:%s', $method, $route);
-
-            $subgraph = $this->subgraphExtractor->from($graph, $startNodeId, $maxDepth);
+        if ($routeOptions->startNodeId() !== null) {
+            $subgraph = $this->subgraphExtractor->from(
+                $graph,
+                $routeOptions->startNodeId(),
+                $routeOptions->maxDepth(),
+            );
 
             if ($subgraph === null) {
-                (new SymfonyStyle($input, $output))->error(
-                    sprintf('Route "%s %s" was not found in the graph.', $method, $route),
+                $io->error(
+                    sprintf(
+                        'Route "%s %s" was not found in the graph.',
+                        $routeOptions->method(),
+                        $routeOptions->route(),
+                    ),
                 );
 
                 return Command::FAILURE;
@@ -112,7 +129,7 @@ final class ExportMermaidCommand extends Command
                 throw new \RuntimeException(sprintf('Unable to write Mermaid file "%s".', $outputFile));
             }
 
-            (new SymfonyStyle($input, $output))->success(
+            $io->success(
                 'Mermaid graph generated successfully.',
             );
 

@@ -28,6 +28,14 @@ final readonly class CompareGraphExports
         $before = $this->decode($beforeJson, 'before');
         $after = $this->decode($afterJson, 'after');
 
+        if ($before['schemaVersion'] !== $after['schemaVersion']) {
+            throw new InvalidArgumentException(sprintf(
+                'Cannot compare PHPFlow graph schemas %s and %s.',
+                $before['schemaVersion'],
+                $after['schemaVersion'],
+            ));
+        }
+
         $beforeNodes = $this->indexNodes($before['nodes']);
         $afterNodes = $this->indexNodes($after['nodes']);
 

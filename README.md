@@ -675,3 +675,16 @@ combines its nearest upstream entry path with every downstream path that reaches
 effect. The resulting entry point → selection → effects flow is highlighted in purple while
 unrelated graph elements are strongly dimmed. It reuses the cycle-safe entry/effect traversal
 and remains a viewer-only feature, leaving the graph JSON schema unchanged.
+
+
+## v0.1 stabilization hardening
+
+The pre-v0.1 stabilization pass tightens CLI contracts without changing graph semantics:
+
+- route-scoped HTML, JSON and Mermaid exports share the same normalized HTTP method, route,
+  and positive `--max-depth` validation;
+- invalid export options fail before scanning the target project;
+- `diff` validates its output format before reading graph files;
+- graph diffs refuse to compare exports with different graph schema versions, preventing
+  misleading change sets across incompatible contracts;
+- graph JSON remains schema `1.2`; impact JSON and graph-diff JSON remain schema `1.0`.

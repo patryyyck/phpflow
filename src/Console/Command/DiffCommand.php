@@ -43,20 +43,7 @@ final class DiffCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $beforePath = (string) $input->getArgument('before');
-        $afterPath = (string) $input->getArgument('after');
-
-        try {
-            $beforeJson = $this->readFile($beforePath);
-            $afterJson = $this->readFile($afterPath);
-            $diff = $this->comparator->compare($beforeJson, $afterJson);
-        } catch (InvalidArgumentException|RuntimeException $exception) {
-            $io->error($exception->getMessage());
-
-            return Command::FAILURE;
-        }
-
-        $format = strtolower((string) $input->getOption('format'));
+        $format = strtolower(trim((string) $input->getOption('format')));
         $outputFile = $input->getOption('output');
 
         if (!in_array($format, ['text', 'json'], true)) {
@@ -69,6 +56,19 @@ final class DiffCommand extends Command
             $io->error('--output can only be used with --format=json.');
 
             return Command::INVALID;
+        }
+
+        $beforePath = (string) $input->getArgument('before');
+        $afterPath = (string) $input->getArgument('after');
+
+        try {
+            $beforeJson = $this->readFile($beforePath);
+            $afterJson = $this->readFile($afterPath);
+            $diff = $this->comparator->compare($beforeJson, $afterJson);
+        } catch (InvalidArgumentException|RuntimeException $exception) {
+            $io->error($exception->getMessage());
+
+            return Command::FAILURE;
         }
 
         if ($format === 'json') {

@@ -72,6 +72,24 @@ final class DiffCommandTest extends TestCase
         self::assertStringContainsString('No graph changes detected.', $tester->getDisplay());
     }
 
+
+    public function testInvalidFormatFailsBeforeReadingGraphFiles(): void
+    {
+        $tester = new CommandTester($this->command());
+
+        self::assertSame(
+            Command::INVALID,
+            $tester->execute([
+                'before' => '/missing/before.json',
+                'after' => '/missing/after.json',
+                '--format' => 'xml',
+            ]),
+        );
+
+        self::assertStringContainsString('Format must be text or json.', $tester->getDisplay());
+        self::assertStringNotContainsString('Unable to read graph JSON file', $tester->getDisplay());
+    }
+
     public function testItFailsWhenAFileCannotBeRead(): void
     {
         $graph = $this->tempGraph([]);
