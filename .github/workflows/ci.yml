@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Build PHPFlow container
+        run: docker compose build php
+
+      - name: Install dependencies
+        run: docker compose run --rm php composer install --no-interaction --prefer-dist
+
+      - name: Validate Composer metadata
+        run: docker compose run --rm php composer validate --strict
+
+      - name: Run test suite
+        run: make test
+
+      - name: Verify release contract
+        run: make release-check

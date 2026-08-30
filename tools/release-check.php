@@ -38,10 +38,18 @@ $expect(($composer['license'] ?? null) === 'MIT', 'Expected MIT Composer license
 $expect(($composer['bin'] ?? null) === ['bin/phpflow'], 'Expected bin/phpflow Composer binary.');
 
 $requiredFiles = [
+    '.github/ISSUE_TEMPLATE/bug_report.yml',
+    '.github/ISSUE_TEMPLATE/feature_request.yml',
+    '.github/ISSUE_TEMPLATE/unsupported_pattern.yml',
+    '.github/pull_request_template.md',
+    '.github/workflows/ci.yml',
     'CHANGELOG.md',
+    'CODE_OF_CONDUCT.md',
+    'CONTRIBUTING.md',
     'LICENSE',
     'README.md',
     'RELEASE.md',
+    'SECURITY.md',
     'docs/CLI.md',
     'docs/SUPPORT.md',
 ];
@@ -59,9 +67,13 @@ $forbidden = [
 ];
 
 $releaseFiles = [
+    '.github/pull_request_template.md',
     'CHANGELOG.md',
+    'CODE_OF_CONDUCT.md',
+    'CONTRIBUTING.md',
     'README.md',
     'RELEASE.md',
+    'SECURITY.md',
     'composer.json',
     'docs/CLI.md',
     'docs/SUPPORT.md',

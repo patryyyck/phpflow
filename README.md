@@ -218,6 +218,9 @@ application code during analysis would be undesirable.
 
 - [CLI contract](docs/CLI.md) — stable v0.1 commands, exit statuses and output schemas.
 - [Support matrix](docs/SUPPORT.md) — what PHPFlow can and cannot prove today.
+- [Contributing guide](CONTRIBUTING.md) — development workflow and reproducible static-pattern reports.
+- [Security policy](SECURITY.md) — how to report security-sensitive behavior safely.
+- [Code of conduct](CODE_OF_CONDUCT.md) — expectations for project participation.
 - [Changelog](CHANGELOG.md) — release history.
 - [Release checklist](RELEASE.md) — maintainer release procedure.
 
@@ -245,7 +248,8 @@ docker compose run --rm php php bin/phpflow --version
 ```
 
 PHPFlow is currently evolving around real-world Symfony applications. Reproducible examples of
-unsupported static patterns are especially useful when reporting issues.
+unsupported static patterns are especially useful when reporting issues. See
+[CONTRIBUTING.md](CONTRIBUTING.md) before proposing a change or attaching a reproduction.
 
 ## License
 

@@ -1,0 +1,49 @@
+name: Unsupported static pattern
+description: Show PHPFlow a real-world PHP/Symfony pattern it does not yet understand
+title: "[Pattern] "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Real-world unsupported patterns are especially valuable. Please reduce the example to the
+        smallest synthetic snippet that still demonstrates the missing relationship.
+  - type: textarea
+    id: goal
+    attributes:
+      label: What relationship should PHPFlow prove?
+      description: For example route → service, message → handler, repository → table, or service → HTTP endpoint.
+    validations:
+      required: true
+  - type: textarea
+    id: example
+    attributes:
+      label: Minimal static pattern
+      description: Provide a sanitized PHP/YAML configuration example.
+      render: php
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Current PHPFlow result
+      description: What does PHPFlow currently omit or report incorrectly?
+    validations:
+      required: true
+  - type: input
+    id: framework
+    attributes:
+      label: Relevant framework/package versions
+      placeholder: "Symfony 7.3, Messenger 7.3, Doctrine DBAL 4.x"
+    validations:
+      required: false
+  - type: checkboxes
+    id: contract
+    attributes:
+      label: Static-analysis contract
+      options:
+        - label: This example can be analyzed from source/configuration without executing the target application.
+          required: true
+        - label: I removed credentials, tokens, private URLs and proprietary source code.
+          required: true

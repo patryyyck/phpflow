@@ -1,0 +1,63 @@
+name: Bug report
+description: Report incorrect PHPFlow behavior or a regression
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please use a minimal, sanitized example whenever possible.
+        Do not include credentials, tokens, private repositories or proprietary source code.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Describe the behavior you observed.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+      description: Describe the flow, edge, effect or CLI behavior you expected.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+      description: Provide the smallest sanitized PHP/configuration example that reproduces the issue.
+      render: php
+    validations:
+      required: false
+  - type: textarea
+    id: command
+    attributes:
+      label: Command and output
+      description: Include the PHPFlow command and relevant output or error.
+      render: shell
+    validations:
+      required: false
+  - type: input
+    id: phpflow
+    attributes:
+      label: PHPFlow version
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: PHP / Symfony / Doctrine / Messenger versions when relevant.
+      placeholder: "PHP 8.4, Symfony 7.3, Doctrine DBAL 4.x"
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Safety check
+      options:
+        - label: I removed credentials, tokens, private URLs and proprietary source code from this report.
+          required: true
