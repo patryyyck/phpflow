@@ -52,6 +52,8 @@ $requiredFiles = [
     'SECURITY.md',
     'docs/CLI.md',
     'docs/SUPPORT.md',
+    'examples/symfony-demo/README.md',
+    'examples/symfony-demo/composer.json',
 ];
 
 foreach ($requiredFiles as $file) {

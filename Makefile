@@ -183,3 +183,10 @@ diff:
 
 release-check:
 	docker compose run --rm php php tools/release-check.php
+
+demo-scan:
+	$(MAKE) scan PROJECT_PATH="$(CURDIR)/examples/symfony-demo"
+
+demo-html:
+	$(MAKE) export-html PROJECT_PATH="$(CURDIR)/examples/symfony-demo" HTML_OUTPUT=/tmp/phpflow-demo.html
+	@echo "Open /tmp/phpflow-demo.html in your browser"

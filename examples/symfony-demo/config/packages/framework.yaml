@@ -1,0 +1,10 @@
+framework:
+  secret: phpflow-demo-secret
+  router:
+    utf8: true
+  messenger:
+    transports:
+      async: 'sync://'
+      async_low: 'sync://'
+  mailer:
+    dsn: 'null://null'

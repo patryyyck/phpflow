@@ -92,6 +92,20 @@ make export-html \
 Open `/tmp/phpflow.html` in a browser. The export is a self-contained HTML file with no external
 JavaScript or CDN dependency.
 
+
+### Try it on the bundled Symfony demo
+
+PHPFlow ships with a synthetic Symfony application containing routes, Messenger flows, service
+aliases, Doctrine/DBAL effects, external HTTP calls, exceptions and control-flow examples.
+
+```bash
+make demo-scan
+make demo-html
+```
+
+Then open `/tmp/phpflow-demo.html`. The full scenario map is documented in
+[`examples/symfony-demo/README.md`](examples/symfony-demo/README.md).
+
 ## Impact analysis
 
 PHPFlow can traverse the graph in the opposite direction too: start with something you plan to

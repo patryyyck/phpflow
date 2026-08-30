@@ -1,0 +1,8 @@
+framework:
+  messenger:
+    routing:
+      'App\Event\UserCreated': async
+      'App\Message\DeleteUser':
+        senders:
+          - async
+          - async_low
