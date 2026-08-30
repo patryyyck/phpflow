@@ -28,8 +28,7 @@ The repository workflow uses Docker, Docker Compose and GNU Make. PHP does not n
 installed on the host.
 
 ```bash
-make build
-docker compose run --rm php composer install
+make setup
 make test
 ```
 

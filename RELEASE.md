@@ -6,6 +6,7 @@ This checklist is for publishing PHPFlow `v0.1.0`.
 
 - [ ] Start from a clean `main` branch containing the validated release commits.
 - [ ] Run `make test` and verify the full PHPUnit suite passes.
+- [ ] From a clean clone, run `make setup` followed by `make demo` and open `/tmp/phpflow-demo.html`.
 - [ ] Run `make release-check` and verify the deterministic release contract checks pass.
 - [ ] Run the representative real-project smoke tests used during development:
   - [ ] `scan`

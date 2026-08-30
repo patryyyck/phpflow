@@ -37,6 +37,24 @@ $expect(($composer['name'] ?? null) === 'phpflow/phpflow', 'Unexpected Composer 
 $expect(($composer['license'] ?? null) === 'MIT', 'Expected MIT Composer license.');
 $expect(($composer['bin'] ?? null) === ['bin/phpflow'], 'Expected bin/phpflow Composer binary.');
 
+$makefile = (string) file_get_contents($root.'/Makefile');
+$expect(
+    str_contains($makefile, '.DEFAULT_GOAL := help'),
+    'Expected `make` to show first-run help by default.',
+);
+$expect(
+    preg_match('/^setup:\R/m', $makefile) === 1,
+    'Expected a `make setup` first-run target.',
+);
+$expect(
+    preg_match('/^demo:\R/m', $makefile) === 1,
+    'Expected a `make demo` first-run target.',
+);
+$expect(
+    str_contains($makefile, 'composer install --no-interaction --prefer-dist'),
+    'Expected setup to install locked Composer dependencies.',
+);
+
 $requiredFiles = [
     '.github/ISSUE_TEMPLATE/bug_report.yml',
     '.github/ISSUE_TEMPLATE/feature_request.yml',
@@ -63,6 +81,7 @@ foreach ($requiredFiles as $file) {
 $forbidden = [
     'YOUR_GITHUB_USERNAME',
     '0.1.0-dev',
+    '<repository-url>',
     'BEGIN OPENSSH PRIVATE KEY',
     'BEGIN RSA PRIVATE KEY',
     'BEGIN EC PRIVATE KEY',

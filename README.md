@@ -57,53 +57,73 @@ from supported static patterns.
 
 ## Quick start
 
-PHPFlow's repository workflow uses Docker, so PHP does not need to be installed on the host.
+The recommended workflow needs only **Docker, Docker Compose and GNU Make**. PHP does not need to
+be installed on the host.
+
+### 1. Set up PHPFlow
+
+After cloning this repository:
 
 ```bash
-git clone <repository-url>
 cd phpflow
-make build
-docker compose run --rm php composer install
+make setup
 ```
 
-Analyze a project:
+`make setup` builds the PHP 8.4 container and installs the locked Composer dependencies.
+
+### 2. Generate your first graph
+
+The fastest way to see PHPFlow working is the bundled Symfony demo:
 
 ```bash
-make scan PROJECT_PATH=/path/to/project
+make demo
 ```
 
-Inspect one HTTP flow:
+This scans the demo and writes the interactive viewer to:
+
+```text
+/tmp/phpflow-demo.html
+```
+
+Open that file in a browser. No Symfony server, database, message broker or external API is started:
+PHPFlow only reads source code and supported configuration.
+
+### 3. Analyze your own project
+
+```bash
+make scan PROJECT_PATH=/absolute/path/to/project
+```
+
+Then generate its interactive graph:
+
+```bash
+make export-html \
+    PROJECT_PATH=/absolute/path/to/project \
+    HTML_OUTPUT=/tmp/phpflow.html
+```
+
+`PROJECT_PATH` is mounted read-only inside the PHPFlow container.
+
+To focus on one route:
 
 ```bash
 make inspect \
-    PROJECT_PATH=/path/to/project \
+    PROJECT_PATH=/absolute/path/to/project \
     ROUTE='/catalog/{recordId}/sync' \
     METHOD=POST
 ```
 
-Generate the interactive viewer:
+or generate a route-scoped viewer:
 
 ```bash
 make export-html \
-    PROJECT_PATH=/path/to/project \
-    HTML_OUTPUT=/tmp/phpflow.html
+    PROJECT_PATH=/absolute/path/to/project \
+    HTML_OUTPUT=/tmp/phpflow-route.html \
+    ROUTE='/catalog/{recordId}/sync' \
+    METHOD=POST
 ```
 
-Open `/tmp/phpflow.html` in a browser. The export is a self-contained HTML file with no external
-JavaScript or CDN dependency.
-
-
-### Try it on the bundled Symfony demo
-
-PHPFlow ships with a synthetic Symfony application containing routes, Messenger flows, service
-aliases, Doctrine/DBAL effects, external HTTP calls, exceptions and control-flow examples.
-
-```bash
-make demo-scan
-make demo-html
-```
-
-Then open `/tmp/phpflow-demo.html`. The full scenario map is documented in
+The bundled demo's complete scenario map is documented in
 [`examples/symfony-demo/README.md`](examples/symfony-demo/README.md).
 
 ## Impact analysis
@@ -150,16 +170,6 @@ The HTML viewer is designed for investigation rather than static diagrams. It in
 - path-to-effects and critical-path highlighting;
 - a minimap for large graphs;
 - detailed node metadata including callable, FQCN and source file when available.
-
-You can also scope an export to one route:
-
-```bash
-make export-html \
-    PROJECT_PATH=/path/to/project \
-    HTML_OUTPUT=/tmp/phpflow-route.html \
-    ROUTE='/catalog/{recordId}/sync' \
-    METHOD=POST
-```
 
 ## Machine-readable output
 

@@ -6,14 +6,15 @@ It intentionally packs many independent patterns into one codebase so that a new
 explore the v0.1 feature surface without pointing the analyzer at proprietary code. The domain is
 fictional and the application is not intended to model production architecture.
 
-From the PHPFlow repository root:
+From a fresh PHPFlow clone:
 
 ```bash
-make demo-scan
-make demo-html
+make setup
+make demo
 ```
 
-The HTML command writes `/tmp/phpflow-demo.html`.
+`make demo` scans this project and writes `/tmp/phpflow-demo.html`. If PHPFlow is already set up,
+`make demo-scan` and `make demo-html` remain available separately.
 
 ## Recommended starting points
 

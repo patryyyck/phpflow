@@ -1,4 +1,23 @@
-.PHONY: build up down composer shell scan test inspect impact impact-table impact-http impact-message impact-service impact-exception export-mermaid export-json export-html
+.DEFAULT_GOAL := help
+
+.PHONY: help setup build up down composer shell scan test inspect impact impact-table impact-http impact-message impact-service impact-exception export-mermaid export-json export-html diff release-check demo demo-scan demo-html
+
+help:
+	@echo "PHPFlow"
+	@echo ""
+	@echo "First run:"
+	@echo "  make setup                    Build PHPFlow and install locked dependencies"
+	@echo "  make demo                     Scan the bundled Symfony demo and generate HTML"
+	@echo ""
+	@echo "Your project:"
+	@echo "  make scan PROJECT_PATH=/path/to/project"
+	@echo "  make inspect PROJECT_PATH=/path/to/project ROUTE=/route METHOD=GET"
+	@echo "  make export-html PROJECT_PATH=/path/to/project HTML_OUTPUT=/tmp/phpflow.html"
+	@echo "  make impact PROJECT_PATH=/path/to/project TABLE=table_name"
+	@echo ""
+	@echo "Development:"
+	@echo "  make test"
+	@echo "  make release-check"
 
 PROJECT_PATH ?= .
 ROUTE ?=
@@ -16,6 +35,11 @@ HTTP ?=
 MESSAGE ?=
 SERVICE ?=
 EXCEPTION ?=
+
+setup:
+	docker compose build
+	docker compose run --rm php composer install --no-interaction --prefer-dist
+	@echo "PHPFlow is ready. Try: make demo"
 
 build:
 	docker compose build
@@ -183,6 +207,16 @@ diff:
 
 release-check:
 	docker compose run --rm php php tools/release-check.php
+
+demo:
+	@if [ ! -f vendor/autoload.php ]; then \
+		echo "Dependencies are missing. Run 'make setup' first."; \
+		exit 1; \
+	fi
+	$(MAKE) demo-scan
+	$(MAKE) demo-html
+	@echo ""
+	@echo "Demo ready: /tmp/phpflow-demo.html"
 
 demo-scan:
 	$(MAKE) scan PROJECT_PATH="$(CURDIR)/examples/symfony-demo"
