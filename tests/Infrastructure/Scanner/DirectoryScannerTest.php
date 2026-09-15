@@ -22,6 +22,26 @@ final class DirectoryScannerTest extends TestCase
         self::assertDirectoryExists($project->path());
     }
 
+    public function testItSkipsGeneratedFilesUnderTheVarDirectory(): void
+    {
+        $scanner = new DirectoryScanner();
+
+        $project = $scanner->scan(__DIR__.'/../../Fixtures/SimpleProject');
+
+        $scannedPaths = array_map(
+            static fn ($sourceFile): string => $sourceFile->path(),
+            $project->sourceFiles(),
+        );
+
+        foreach ($scannedPaths as $scannedPath) {
+            self::assertStringNotContainsString(
+                DIRECTORY_SEPARATOR.'var'.DIRECTORY_SEPARATOR,
+                $scannedPath,
+                'Generated files under var/ must not be scanned as application source.',
+            );
+        }
+    }
+
     public function testItRejectsAnUnknownDirectory(): void
     {
         $scanner = new DirectoryScanner();
