@@ -2684,8 +2684,12 @@ final class ProjectAstAnalyzer
                 continue;
             }
 
+            // Attribute arguments are read when the collector enters the class,
+            // before the traverser descends into them, so name resolution has to
+            // complete in its own pass first.
+            $ast = (new NodeTraverser(new NameResolver()))->traverse($ast);
+
             $traverser = new NodeTraverser(
-                new NameResolver(),
                 new ParentConnectingVisitor(),
                 $collector,
             );

@@ -22,11 +22,11 @@ final class ProjectAstAnalyzerTest extends TestCase
         $analysis = $this->analyze();
         $statistics = $analysis->statistics();
 
-        self::assertSame(72, $statistics->classes());
+        self::assertSame(73, $statistics->classes());
         self::assertSame(17, $statistics->interfaces());
         self::assertSame(1, $statistics->traits());
         self::assertSame(1, $statistics->enums());
-        self::assertCount(27, $analysis->attributes());
+        self::assertCount(28, $analysis->attributes());
     }
 
     public function testItDetectsSymfonyRouteAttributes(): void
