@@ -263,9 +263,10 @@ final class ProjectAstAnalyzer
                         $node->var instanceof Node\Expr\Variable
                         && $node->var->name === 'this'
                         && $node->name instanceof Node\Identifier
-                        && isset($node->args[0])
                     ) {
-                        $argumentType = $this->messageClassFromExpression($node->args[0]->value);
+                        $argumentType = $this->messageClassFromExpression(
+                            $this->argumentExpression($node->args, 0),
+                        );
 
                         if ($argumentType !== null) {
                             $this->unresolvedCalls[] = new UnresolvedCall(
@@ -454,11 +455,11 @@ final class ProjectAstAnalyzer
                         $class === 'Symfony\\Component\\HttpFoundation\\JsonResponse'
                         || str_ends_with($class, '\\JsonResponse')
                     ) {
+                        $status = $this->argumentExpression($expression->args, 1);
+
                         return [
                             'JsonResponse',
-                            isset($expression->args[1])
-                                ? $this->httpStatusCode($expression->args[1]->value)
-                                : 200,
+                            $status !== null ? $this->httpStatusCode($status) : 200,
                         ];
                     }
 
@@ -466,11 +467,11 @@ final class ProjectAstAnalyzer
                         $class === 'Symfony\\Component\\HttpFoundation\\RedirectResponse'
                         || str_ends_with($class, '\\RedirectResponse')
                     ) {
+                        $status = $this->argumentExpression($expression->args, 1);
+
                         return [
                             'RedirectResponse',
-                            isset($expression->args[1])
-                                ? $this->httpStatusCode($expression->args[1]->value)
-                                : 302,
+                            $status !== null ? $this->httpStatusCode($status) : 302,
                         ];
                     }
 
@@ -478,11 +479,11 @@ final class ProjectAstAnalyzer
                         $class === 'Symfony\\Component\\HttpFoundation\\Response'
                         || str_ends_with($class, '\\Response')
                     ) {
+                        $status = $this->argumentExpression($expression->args, 1);
+
                         return [
                             'Response',
-                            isset($expression->args[1])
-                                ? $this->httpStatusCode($expression->args[1]->value)
-                                : 200,
+                            $status !== null ? $this->httpStatusCode($status) : 200,
                         ];
                     }
                 }
@@ -496,22 +497,22 @@ final class ProjectAstAnalyzer
                     $method = $expression->name->toString();
 
                     if ($method === 'json') {
+                        $status = $this->argumentExpression($expression->args, 1);
+
                         return [
                             'JsonResponse',
-                            isset($expression->args[1])
-                                ? $this->httpStatusCode($expression->args[1]->value)
-                                : 200,
+                            $status !== null ? $this->httpStatusCode($status) : 200,
                         ];
                     }
 
                     if (in_array($method, ['redirect', 'redirectToRoute'], true)) {
                         $statusIndex = $method === 'redirect' ? 1 : 2;
 
+                        $status = $this->argumentExpression($expression->args, $statusIndex);
+
                         return [
                             'RedirectResponse',
-                            isset($expression->args[$statusIndex])
-                                ? $this->httpStatusCode($expression->args[$statusIndex]->value)
-                                : 302,
+                            $status !== null ? $this->httpStatusCode($status) : 302,
                         ];
                     }
                 }
@@ -519,8 +520,12 @@ final class ProjectAstAnalyzer
                 return null;
             }
 
-            private function httpStatusCode(Node\Expr $expression): ?int
+            private function httpStatusCode(?Node\Expr $expression): ?int
             {
+                if ($expression === null) {
+                    return null;
+                }
+
                 if ($expression instanceof Node\Scalar\Int_) {
                     return $expression->value;
                 }
@@ -1376,16 +1381,32 @@ final class ProjectAstAnalyzer
                     : sprintf('%s::%s', $this->className, $this->methodName);
             }
 
+            /**
+             * Returns the expression passed at $index, when one exists.
+             *
+             * First-class callable syntax (`$service->method(...)`) stores a
+             * VariadicPlaceholder in place of the argument list. It carries no
+             * expression, so callers receive null and stay conservative.
+             *
+             * @param array<int, Node\Arg|Node\VariadicPlaceholder> $arguments
+             */
+            private function argumentExpression(array $arguments, int $index): ?Node\Expr
+            {
+                $argument = $arguments[$index] ?? null;
+
+                return $argument instanceof Node\Arg ? $argument->value : null;
+            }
+
             private function isDispatchCall(Node\Expr\MethodCall $call): bool
             {
                 return $call->name instanceof Node\Identifier
                     && $call->name->toString() === 'dispatch'
-                    && isset($call->args[0]);
+                    && $this->argumentExpression($call->args, 0) !== null;
             }
 
             private function messageClassFromDispatch(Node\Expr\MethodCall $call): ?string
             {
-                return $this->messageClassFromExpression($call->args[0]->value);
+                return $this->messageClassFromExpression($this->argumentExpression($call->args, 0));
             }
 
             private function messageClassFromInheritedWrapper(Node\Expr\MethodCall $call): ?string
@@ -1409,15 +1430,21 @@ final class ProjectAstAnalyzer
                 }
 
                 $position = $method->dispatchedParameterPosition();
-                if ($position === null || !isset($call->args[$position])) {
+                if ($position === null) {
                     return null;
                 }
 
-                return $this->messageClassFromExpression($call->args[$position]->value);
+                return $this->messageClassFromExpression(
+                    $this->argumentExpression($call->args, $position),
+                );
             }
 
-            private function messageClassFromExpression(Node\Expr $value): ?string
+            private function messageClassFromExpression(?Node\Expr $value): ?string
             {
+                if ($value === null) {
+                    return null;
+                }
+
                 if ($value instanceof Node\Expr\New_ && $value->class instanceof Node\Name) {
                     return $value->class->toString();
                 }
@@ -1639,12 +1666,12 @@ final class ProjectAstAnalyzer
                 $arguments = [];
 
                 foreach ($definition->parameters() as $index => $parameter) {
-                    if ($parameter === '' || !isset($call->args[$index])) {
+                    if ($parameter === '') {
                         continue;
                     }
 
                     $value = $this->httpCallArgumentValue(
-                        $call->args[$index]->value,
+                        $this->argumentExpression($call->args, $index),
                         $parameter === 'url',
                     );
 
@@ -1707,12 +1734,12 @@ final class ProjectAstAnalyzer
 
                 if ($definition !== null) {
                     foreach ($definition->parameters() as $index => $parameter) {
-                        if ($parameter === '' || !isset($call->args[$index])) {
+                        if ($parameter === '') {
                             continue;
                         }
 
                         $value = $this->httpCallArgumentValue(
-                            $call->args[$index]->value,
+                            $this->argumentExpression($call->args, $index),
                             $parameter === 'url',
                         );
 
@@ -1747,8 +1774,7 @@ final class ProjectAstAnalyzer
                 }
 
                 if (in_array($method, ['insert', 'update', 'delete'], true)) {
-                    return isset($call->args[0])
-                        && $this->stringValue($call->args[0]->value) !== null;
+                    return $this->stringValue($this->argumentExpression($call->args, 0)) !== null;
                 }
 
                 if (in_array($method, [
@@ -1761,8 +1787,7 @@ final class ProjectAstAnalyzer
                 ], true)
                     && $this->isDatabaseCallReceiver($call)
                 ) {
-                    return isset($call->args[0])
-                        && $this->databaseStringValue($call->args[0]->value) !== null;
+                    return $this->databaseStringValue($this->argumentExpression($call->args, 0)) !== null;
                 }
 
                 return in_array($method, [
@@ -1832,9 +1857,7 @@ final class ProjectAstAnalyzer
                 $method = $call->name->toString();
 
                 if (in_array($method, ['update', 'delete', 'insert'], true)) {
-                    $target = isset($call->args[0])
-                        ? $this->stringValue($call->args[0]->value)
-                        : null;
+                    $target = $this->stringValue($this->argumentExpression($call->args, 0));
 
                     $this->methodContext->updateQueryBuilder(
                         $variable,
@@ -1855,9 +1878,7 @@ final class ProjectAstAnalyzer
                 }
 
                 if ($method === 'from') {
-                    $target = isset($call->args[0])
-                        ? $this->stringValue($call->args[0]->value)
-                        : null;
+                    $target = $this->stringValue($this->argumentExpression($call->args, 0));
 
                     $this->methodContext->updateQueryBuilder(
                         $variable,
@@ -1941,9 +1962,7 @@ final class ProjectAstAnalyzer
                     && $this->isDatabaseCallReceiver($call)
                 ) {
                     $operation = strtoupper($method);
-                    $target = isset($call->args[0])
-                        ? $this->stringValue($call->args[0]->value)
-                        : null;
+                    $target = $this->stringValue($this->argumentExpression($call->args, 0));
                 } elseif (
                     in_array($method, [
                     'executeStatement',
@@ -1953,9 +1972,7 @@ final class ProjectAstAnalyzer
                     'fetchOne',
                     'prepare',
                 ], true)) {
-                    $sql = isset($call->args[0])
-                        ? $this->databaseStringValue($call->args[0]->value)
-                        : null;
+                    $sql = $this->databaseStringValue($this->argumentExpression($call->args, 0));
 
                     if ($sql === null) {
                         return;
@@ -1967,17 +1984,13 @@ final class ProjectAstAnalyzer
                     && $this->isDatabaseCallReceiver($call)
                 ) {
                     $operation = strtoupper($method);
-                    $target = isset($call->args[0])
-                        ? $this->expressionType($call->args[0]->value)
-                        : null;
+                    $target = $this->expressionType($this->argumentExpression($call->args, 0));
                 } elseif (
                     in_array($method, ['find', 'findOneBy', 'findBy'], true)
                     && $this->isDatabaseCallReceiver($call)
                 ) {
                     $operation = 'SELECT';
-                    $target = isset($call->args[0])
-                        ? $this->classNameValue($call->args[0]->value)
-                        : null;
+                    $target = $this->classNameValue($this->argumentExpression($call->args, 0));
                 }
 
                 if ($operation === null) {
@@ -2017,8 +2030,12 @@ final class ProjectAstAnalyzer
                 return false;
             }
 
-            private function databaseStringValue(Node\Expr $expression): ?string
+            private function databaseStringValue(?Node\Expr $expression): ?string
             {
+                if ($expression === null) {
+                    return null;
+                }
+
                 $value = $this->stringValue($expression);
 
                 if ($value !== null) {
@@ -2083,8 +2100,12 @@ final class ProjectAstAnalyzer
                 ));
             }
 
-            private function classNameValue(Node\Expr $expression): ?string
+            private function classNameValue(?Node\Expr $expression): ?string
             {
+                if ($expression === null) {
+                    return null;
+                }
+
                 if (
                     $expression instanceof Node\Expr\ClassConstFetch
                     && $expression->name instanceof Node\Identifier
@@ -2098,8 +2119,12 @@ final class ProjectAstAnalyzer
                 return null;
             }
 
-            private function expressionType(Node\Expr $expression): ?string
+            private function expressionType(?Node\Expr $expression): ?string
             {
+                if ($expression === null) {
+                    return null;
+                }
+
                 if ($expression instanceof Node\Expr\New_ && $expression->class instanceof Node\Name) {
                     return $expression->class->getAttribute('resolvedName')?->toString()
                         ?? $expression->class->toString();
@@ -2182,9 +2207,7 @@ final class ProjectAstAnalyzer
                     };
 
                     if ($operation !== null) {
-                        $target = isset($call->args[0])
-                            ? $this->stringValue($call->args[0]->value)
-                            : null;
+                        $target = $this->stringValue($this->argumentExpression($call->args, 0));
 
                         return ['filesystem', $operation, $target];
                     }
@@ -2202,11 +2225,10 @@ final class ProjectAstAnalyzer
                     if ($operation !== null) {
                         $target = null;
 
-                        if (
-                            in_array($method, ['delete', 'deleteItem', 'get'], true)
-                            && isset($call->args[0])
-                        ) {
-                            $target = $this->stringValue($call->args[0]->value);
+                        if (in_array($method, ['delete', 'deleteItem', 'get'], true)) {
+                            $target = $this->stringValue(
+                                $this->argumentExpression($call->args, 0),
+                            );
                         }
 
                         return ['cache', $operation, $target];
@@ -2258,13 +2280,9 @@ final class ProjectAstAnalyzer
                     return;
                 }
 
-                $method = isset($call->args[0])
-                    ? $this->httpCallArgumentValue($call->args[0]->value)
-                    : null;
+                $method = $this->httpCallArgumentValue($this->argumentExpression($call->args, 0));
 
-                $url = isset($call->args[1])
-                    ? $this->httpCallArgumentValue($call->args[1]->value, true)
-                    : null;
+                $url = $this->httpCallArgumentValue($this->argumentExpression($call->args, 1), true);
 
                 $this->httpCalls[] = new HttpCall(
                     $this->source(),
@@ -2276,9 +2294,13 @@ final class ProjectAstAnalyzer
             }
 
             private function httpCallArgumentValue(
-                Node\Expr $expression,
+                ?Node\Expr $expression,
                 bool $url = false,
             ): ?string {
+                if ($expression === null) {
+                    return null;
+                }
+
                 if (
                     $expression instanceof Node\Expr\Variable
                     && is_string($expression->name)
@@ -2398,8 +2420,12 @@ final class ProjectAstAnalyzer
                     || str_contains($class, '\\HttpClient\\');
             }
 
-            private function stringValue(Node\Expr $expression): ?string
+            private function stringValue(?Node\Expr $expression): ?string
             {
+                if ($expression === null) {
+                    return null;
+                }
+
                 $staticValue = $this->staticStringExpression($expression);
 
                 if ($staticValue !== null) {
@@ -2493,12 +2519,11 @@ final class ProjectAstAnalyzer
                 if (
                     !$call->name instanceof Node\Name
                     || strtolower(ltrim($call->name->toString(), '\\')) !== 'sprintf'
-                    || !isset($call->args[0])
                 ) {
                     return null;
                 }
 
-                $format = $this->stringValue($call->args[0]->value);
+                $format = $this->stringValue($this->argumentExpression($call->args, 0));
 
                 if ($format === null) {
                     return null;

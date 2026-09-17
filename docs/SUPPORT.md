@@ -40,6 +40,7 @@ over guessing.
 | Same-class `$this->method()` recursion | **Supported** | Private/helper methods can contribute downstream effects. |
 | Recursive service/repository chains | **Supported** | Traversal is cycle-safe. |
 | Argument context propagation | **Partial** | Static string argument context is propagated through supported service-call chains. |
+| First-class callable syntax | **Partial** | `$service->method(...)` keeps the call edge. The deferred call carries no argument list, so argument context is not propagated through it. |
 | Dynamic class names | **Not supported** | Runtime-only class selection is not guessed. |
 | Dynamic method names | **Not supported** | Runtime-only method selection is not guessed. |
 | Reflection-driven call graphs | **Not supported** | Reflection is not executed or emulated. |

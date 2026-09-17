@@ -22,18 +22,18 @@ final class ProjectAstAnalyzerTest extends TestCase
         $analysis = $this->analyze();
         $statistics = $analysis->statistics();
 
-        self::assertSame(70, $statistics->classes());
+        self::assertSame(72, $statistics->classes());
         self::assertSame(17, $statistics->interfaces());
         self::assertSame(1, $statistics->traits());
         self::assertSame(1, $statistics->enums());
-        self::assertCount(26, $analysis->attributes());
+        self::assertCount(27, $analysis->attributes());
     }
 
     public function testItDetectsSymfonyRouteAttributes(): void
     {
         $analysis = $this->analyze();
 
-        self::assertCount(15, $analysis->routes());
+        self::assertCount(16, $analysis->routes());
 
         $bySignature = [];
 
