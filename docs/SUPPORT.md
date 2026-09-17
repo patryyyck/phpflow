@@ -27,6 +27,7 @@ over guessing.
 | Symfony components used by PHPFlow | **Supported** | Console, Finder and Yaml `^7.3`. |
 | Target project execution | **Not supported** | The target application is never booted or executed. |
 | `vendor/` application scanning | **Not supported** | Application source discovery excludes `vendor/`; vendor symbols can still be used for symbol resolution where supported. |
+| `var/` generated-artifact scanning | **Not supported** | Application source discovery excludes `var/`. Symfony container dumps, proxies and logs are generated output, not application source, and would otherwise contribute phantom routes and services. |
 
 ## PHP declarations and call flow
 

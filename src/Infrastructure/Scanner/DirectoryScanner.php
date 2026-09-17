@@ -11,6 +11,17 @@ use Symfony\Component\Finder\Finder;
 
 final class DirectoryScanner implements ProjectScanner
 {
+    /**
+     * Directories that never contain application source.
+     *
+     * `var/` holds Symfony generated artifacts (container dumps, proxies, logs).
+     * Parsing them is both expensive and misleading: a generated container
+     * re-declares routes and services that would surface as phantom flows.
+     *
+     * @var list<string>
+     */
+    private const array EXCLUDED_DIRECTORIES = ['vendor', 'var'];
+
     public function scan(string $path): Project
     {
         $realPath = realpath($path);
@@ -23,7 +34,7 @@ final class DirectoryScanner implements ProjectScanner
             ->files()
             ->in($realPath)
             ->name('*.php')
-            ->exclude('vendor')
+            ->exclude(self::EXCLUDED_DIRECTORIES)
             ->sortByName();
 
         $sourceFiles = [];
