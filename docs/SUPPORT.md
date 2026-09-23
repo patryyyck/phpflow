@@ -55,6 +55,23 @@ over guessing.
 | Static route-scoped exports | **Supported** | Mermaid, JSON and HTML exports can be scoped by route and depth. |
 | Runtime/generated routing configuration | **Not supported** | Routes created only while booting the application are outside the contract. |
 
+## API Platform
+
+| Pattern | Status | Notes |
+| --- | --- | --- |
+| `#[ApiResource(operations: [...])]` | **Partial** | An operation becomes an entry point when it names an application `provider:`, `processor:` or `controller:`. |
+| Class-level operation attributes | **Partial** | `#[Get(...)]` and its siblings declared on the resource class are read under the same conditions. |
+| Several targets on one operation | **Supported** | An operation naming both a provider and a processor yields one route with an edge to each. |
+| Resource-level `provider:`/`processor:`/`controller:` | **Supported** | Inherited by the operations of that resource, including class-level operation attributes when the class carries a single `#[ApiResource]`. An operation declaring its own target overrides the inherited one. |
+| Inherited target vs. HTTP method | **Supported** | An inherited target is applied only where API Platform would run it: a processor on unsafe methods, a provider on anything but a `Post`, unless a literal `read:`/`write:` on the operation says otherwise. |
+| Literal `uriTemplate` | **Supported** | Used as the operation path, and as its identity in `inspect` and the export options. |
+| Operation without a `uriTemplate` | **Supported** | The operation carries no path. Its identity is the literal `name:` when it declares one, otherwise `api_platform.<resource FQCN>.<operation>`, numbered from the second occurrence when a resource repeats an operation. |
+| `routePrefix` | **Supported** | Prefixed onto the operation `uriTemplate` when the operation declares one. |
+| `#[ApiResource]` without `operations:` | **Not supported** | The operation set API Platform defaults to is not declared in source, so no operation is derived from it. A resource-level target is still inherited by class-level operation attributes. |
+| Default state providers/processors | **Not supported** | `ItemProvider`, `CollectionProvider`, `PersistProcessor` and `RemoveProcessor` live in `vendor/`, which application source discovery excludes, so operations relying on them have no provable target. |
+| Derived `uriTemplate` | **Not supported** | A path defaulted from the resource short name is not reconstructed, so an operation that declares none is reported without a path rather than with a guessed one. |
+| GraphQL operations | **Not supported** | Only HTTP operations are represented. |
+
 ## Symfony service resolution
 
 | Pattern | Status | Notes |

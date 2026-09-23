@@ -55,6 +55,26 @@ final class ProjectAstAnalyzer
 
         $collector = new class($this->printer, $projectIndex) extends NodeVisitorAbstract {
             public int $classes = 0;
+            /** @var array<string, string> */
+            private const array API_PLATFORM_OPERATIONS = [
+                'ApiPlatform\\Metadata\\Get' => 'GET',
+                'ApiPlatform\\Metadata\\GetCollection' => 'GET',
+                'ApiPlatform\\Metadata\\Post' => 'POST',
+                'ApiPlatform\\Metadata\\Put' => 'PUT',
+                'ApiPlatform\\Metadata\\Patch' => 'PATCH',
+                'ApiPlatform\\Metadata\\Delete' => 'DELETE',
+            ];
+
+            /** @var array<string, string> */
+            private const array API_PLATFORM_TARGET_METHODS = [
+                'provider' => 'provide',
+                'processor' => 'process',
+                'controller' => '__invoke',
+            ];
+
+            /** @var array<string, int> */
+            private array $apiPlatformOperationCounts = [];
+
             public int $interfaces = 0;
             public int $traits = 0;
             public int $enums = 0;
@@ -161,6 +181,7 @@ final class ProjectAstAnalyzer
                     $this->collectAttributes(
                         $node->attrGroups,
                         $this->className ?? $node->name?->toString() ?? '<anonymous>',
+                        $this->className,
                     );
                 }
 
@@ -2616,6 +2637,10 @@ final class ProjectAstAnalyzer
                 ?string $className = null,
                 ?string $methodName = null,
             ): void {
+                $apiPlatformDefaults = $methodName === null && $className !== null
+                    ? $this->apiPlatformResourceDefaults($groups)
+                    : [];
+
                 foreach ($groups as $group) {
                     foreach ($group->attrs as $attribute) {
                         $name = $attribute->name->getAttribute('resolvedName')?->toString()
@@ -2630,6 +2655,19 @@ final class ProjectAstAnalyzer
 
                         if ($methodName !== null && $className !== null && $this->isSymfonyRoute($name)) {
                             $this->routes[] = $this->createRoute($attribute, $className, $methodName);
+                        }
+
+                        if ($methodName === null && $className !== null) {
+                            $resourceRoutes = $this->createApiPlatformRoutes(
+                                $attribute,
+                                $name,
+                                $className,
+                                $apiPlatformDefaults,
+                            );
+
+                            foreach ($resourceRoutes as $route) {
+                                $this->routes[] = $route;
+                            }
                         }
                     }
                 }
@@ -2674,6 +2712,308 @@ final class ProjectAstAnalyzer
                     path: $path,
                     methods: $methods,
                     name: $name,
+                );
+            }
+
+            /**
+             * API Platform declares entry points on the resource class, either as
+             * `#[ApiResource(operations: [new Get(...)])]` or as a class-level
+             * operation attribute.
+             *
+             * @param array<string, string> $resourceTargets Targets declared on the
+             *                                               class `#[ApiResource]`,
+             *                                               inherited by class-level
+             *                                               operation attributes.
+             *
+             * @return list<SymfonyRoute>
+             */
+            private function createApiPlatformRoutes(
+                Node\Attribute $attribute,
+                string $name,
+                string $resourceClass,
+                array $resourceTargets,
+            ): array {
+                if (isset(self::API_PLATFORM_OPERATIONS[$name])) {
+                    return $this->apiPlatformOperationRoutes(
+                        $name,
+                        $attribute->args,
+                        null,
+                        $resourceClass,
+                        $resourceTargets,
+                    );
+                }
+
+                if ($name !== 'ApiPlatform\\Metadata\\ApiResource') {
+                    return [];
+                }
+
+                $routePrefix = null;
+                $operations = null;
+                $declaredTargets = $this->apiPlatformTargets($attribute->args);
+
+                foreach ($attribute->args as $argument) {
+                    $argumentName = $argument->name?->toString();
+
+                    if ($argumentName === 'routePrefix' && $argument->value instanceof String_) {
+                        $routePrefix = $argument->value->value;
+                    }
+
+                    if ($argumentName === 'operations' && $argument->value instanceof Array_) {
+                        $operations = $argument->value;
+                    }
+                }
+
+                if ($operations === null) {
+                    return [];
+                }
+
+                $routes = [];
+
+                foreach ($operations->items as $item) {
+                    $operation = $item?->value;
+
+                    if (!$operation instanceof Node\Expr\New_) {
+                        continue;
+                    }
+
+                    $operationClass = $this->expressionType($operation);
+
+                    if ($operationClass === null) {
+                        continue;
+                    }
+
+                    $operationRoutes = $this->apiPlatformOperationRoutes(
+                        $operationClass,
+                        $operation->args,
+                        $routePrefix,
+                        $resourceClass,
+                        $declaredTargets,
+                    );
+
+                    foreach ($operationRoutes as $route) {
+                        $routes[] = $route;
+                    }
+                }
+
+                return $routes;
+            }
+
+            /**
+             * The target is what roots a flow, so an operation is emitted as soon as
+             * it names one, whether or not it also declares a `uriTemplate`.
+             *
+             * An operation can name a provider and a processor at once, so it can
+             * yield more than one entry point for the same operation.
+             *
+             * @param array<int, Node\Arg|Node\VariadicPlaceholder> $arguments
+             * @param array<string, string>                        $resourceTargets Resource-level defaults
+             *
+             * @return list<SymfonyRoute>
+             */
+            private function apiPlatformOperationRoutes(
+                string $operationClass,
+                array $arguments,
+                ?string $routePrefix,
+                string $resourceClass,
+                array $resourceTargets,
+            ): array {
+                $method = self::API_PLATFORM_OPERATIONS[$operationClass] ?? null;
+
+                if ($method === null) {
+                    return [];
+                }
+
+                $path = null;
+                $name = null;
+                $read = null;
+                $write = null;
+
+                foreach ($arguments as $argument) {
+                    if (!$argument instanceof Node\Arg) {
+                        continue;
+                    }
+
+                    $argumentName = $argument->name?->toString();
+
+                    if ($argumentName === 'uriTemplate' && $argument->value instanceof String_) {
+                        $path = $argument->value->value;
+                    }
+
+                    if ($argumentName === 'name' && $argument->value instanceof String_) {
+                        $name = $argument->value->value;
+                    }
+
+                    if ($argumentName === 'read') {
+                        $read = $this->booleanValue($argument->value);
+                    }
+
+                    if ($argumentName === 'write') {
+                        $write = $this->booleanValue($argument->value);
+                    }
+                }
+
+                $targets = $this->apiPlatformTargets($arguments);
+
+                foreach ($resourceTargets as $kind => $target) {
+                    if (isset($targets[$kind]) || !$this->inheritsApiPlatformTarget($kind, $method, $read, $write)) {
+                        continue;
+                    }
+
+                    $targets[$kind] = $target;
+                }
+
+                if ($targets === []) {
+                    return [];
+                }
+
+                if ($path !== null) {
+                    if ($routePrefix !== null) {
+                        $path = rtrim($routePrefix, '/').'/'.ltrim($path, '/');
+                    }
+
+                    $path = '/'.ltrim($path, '/');
+                }
+
+                $name ??= $this->apiPlatformOperationName($resourceClass, $operationClass);
+
+                $routes = [];
+
+                foreach ($targets as $kind => $target) {
+                    $routes[] = new SymfonyRoute(
+                        controller: $target.'::'.self::API_PLATFORM_TARGET_METHODS[$kind],
+                        path: $path,
+                        methods: [$method],
+                        name: $name,
+                    );
+                }
+
+                return $routes;
+            }
+
+            /**
+             * `provider:`, `processor:` and `controller:` share the same shape
+             * wherever they are declared, on the resource or on one operation.
+             *
+             * @param array<int, Node\Arg|Node\VariadicPlaceholder> $arguments
+             *
+             * @return array<string, string>
+             */
+            private function apiPlatformTargets(array $arguments): array
+            {
+                $targets = [];
+
+                foreach ($arguments as $argument) {
+                    if (!$argument instanceof Node\Arg) {
+                        continue;
+                    }
+
+                    $argumentName = (string) $argument->name?->toString();
+
+                    if (!isset(self::API_PLATFORM_TARGET_METHODS[$argumentName])) {
+                        continue;
+                    }
+
+                    $target = $this->classNameValue($argument->value);
+
+                    if ($target !== null) {
+                        $targets[$argumentName] = $target;
+                    }
+                }
+
+                return $targets;
+            }
+
+            /**
+             * A target declared on `#[ApiResource]` is the default for every
+             * operation of that resource, so a class-level operation attribute
+             * inherits it. Several `#[ApiResource]` on one class would make the
+             * inheritance ambiguous, so nothing is inherited then.
+             *
+             * @param array<int, Node\AttributeGroup> $groups
+             *
+             * @return array<string, string>
+             */
+            private function apiPlatformResourceDefaults(array $groups): array
+            {
+                $defaults = [];
+                $resources = 0;
+
+                foreach ($groups as $group) {
+                    foreach ($group->attrs as $attribute) {
+                        $name = $attribute->name->getAttribute('resolvedName')?->toString()
+                            ?? $attribute->name->toString();
+
+                        if ($name !== 'ApiPlatform\\Metadata\\ApiResource') {
+                            continue;
+                        }
+
+                        ++$resources;
+                        $defaults = $this->apiPlatformTargets($attribute->args);
+                    }
+                }
+
+                return $resources === 1 ? $defaults : [];
+            }
+
+            /**
+             * What an operation declares itself is taken at face value, but an
+             * inherited target only applies where API Platform would run it: a
+             * processor on an unsafe method, a provider on anything but a POST,
+             * which reads nothing by default. A literal `read:`/`write:` on the
+             * operation overrides that default.
+             *
+             * @see ApiPlatform\Symfony\EventListener\ReadListener  (`canRead`)
+             * @see ApiPlatform\Symfony\EventListener\WriteListener (`canWrite`)
+             */
+            private function inheritsApiPlatformTarget(
+                string $kind,
+                string $method,
+                ?bool $read,
+                ?bool $write,
+            ): bool {
+                return match ($kind) {
+                    'provider' => $read ?? $method !== 'POST',
+                    'processor' => $write ?? $method !== 'GET',
+                    default => true,
+                };
+            }
+
+            private function booleanValue(Node\Expr $expression): ?bool
+            {
+                if (!$expression instanceof Node\Expr\ConstFetch) {
+                    return null;
+                }
+
+                return match (strtolower($expression->name->toString())) {
+                    'true' => true,
+                    'false' => false,
+                    default => null,
+                };
+            }
+
+            /**
+             * An operation that declares no `uriTemplate` still has an identity in
+             * source: the resource it belongs to and the operation it is. Reusing
+             * the path API Platform would derive would mean guessing, so the
+             * operation is identified by that pair instead, numbered from the
+             * second occurrence when a resource repeats the same operation.
+             */
+            private function apiPlatformOperationName(string $resourceClass, string $operationClass): string
+            {
+                $separator = strrpos($operationClass, '\\');
+                $shortName = $separator === false
+                    ? $operationClass
+                    : substr($operationClass, $separator + 1);
+
+                $key = $resourceClass.'::'.$shortName;
+                $this->apiPlatformOperationCounts[$key] ??= 0;
+                $occurrence = ++$this->apiPlatformOperationCounts[$key];
+
+                return sprintf(
+                    'api_platform.%s.%s%s',
+                    $resourceClass,
+                    lcfirst($shortName),
+                    $occurrence > 1 ? '#'.$occurrence : '',
                 );
             }
         };

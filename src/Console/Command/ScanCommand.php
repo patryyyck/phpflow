@@ -80,7 +80,7 @@ final class ScanCommand extends Command
             foreach ($analysis->routes() as $route) {
                 $rows[] = [
                     $route->methods() === [] ? '*' : implode('|', $route->methods()),
-                    $route->path() ?? '<dynamic>',
+                    $route->path() ?? $route->name() ?? '<dynamic>',
                     $route->controller(),
                 ];
             }

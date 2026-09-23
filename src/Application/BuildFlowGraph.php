@@ -19,13 +19,13 @@ final class BuildFlowGraph
         $graph->setSymbolFiles($analysis->symbolFiles());
 
         foreach ($analysis->routes() as $route) {
-            $routeId = $this->routeId($route->methods(), $route->path());
+            $routeId = $this->routeId($route->methods(), $route->path(), $route->name());
             $controllerId = 'controller:'.$route->controller();
 
             $graph->addNode(new Node(
                 $routeId,
                 NodeType::ROUTE,
-                $this->routeLabel($route->methods(), $route->path()),
+                $this->routeLabel($route->methods(), $route->path(), $route->name()),
             ));
 
             $graph->addNode(new Node(
@@ -741,24 +741,24 @@ final class BuildFlowGraph
     /**
      * @param list<string> $methods
      */
-    private function routeId(array $methods, ?string $path): string
+    private function routeId(array $methods, ?string $path, ?string $name = null): string
     {
         return sprintf(
             'route:%s:%s',
             $methods === [] ? '*' : implode('|', $methods),
-            $path ?? '<dynamic>',
+            $path ?? $name ?? '<dynamic>',
         );
     }
 
     /**
      * @param list<string> $methods
      */
-    private function routeLabel(array $methods, ?string $path): string
+    private function routeLabel(array $methods, ?string $path, ?string $name = null): string
     {
         return sprintf(
             '%s %s',
             $methods === [] ? '*' : implode('|', $methods),
-            $path ?? '<dynamic>',
+            $path ?? $name ?? '<dynamic>',
         );
     }
 }
