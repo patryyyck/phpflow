@@ -2748,6 +2748,7 @@ final class ProjectAstAnalyzer
                 }
 
                 $routePrefix = null;
+                $uriTemplate = null;
                 $operations = null;
                 $declaredTargets = $this->apiPlatformTargets($attribute->args);
 
@@ -2756,6 +2757,10 @@ final class ProjectAstAnalyzer
 
                     if ($argumentName === 'routePrefix' && $argument->value instanceof String_) {
                         $routePrefix = $argument->value->value;
+                    }
+
+                    if ($argumentName === 'uriTemplate' && $argument->value instanceof String_) {
+                        $uriTemplate = $argument->value->value;
                     }
 
                     if ($argumentName === 'operations' && $argument->value instanceof Array_) {
@@ -2788,6 +2793,7 @@ final class ProjectAstAnalyzer
                         $routePrefix,
                         $resourceClass,
                         $declaredTargets,
+                        $uriTemplate,
                     );
 
                     foreach ($operationRoutes as $route) {
@@ -2806,7 +2812,8 @@ final class ProjectAstAnalyzer
              * yield more than one entry point for the same operation.
              *
              * @param array<int, Node\Arg|Node\VariadicPlaceholder> $arguments
-             * @param array<string, string>                        $resourceTargets Resource-level defaults
+             * @param array<string, string>                        $resourceTargets     Resource-level defaults
+             * @param ?string                                      $resourceUriTemplate Used when the operation declares none
              *
              * @return list<SymfonyRoute>
              */
@@ -2816,6 +2823,7 @@ final class ProjectAstAnalyzer
                 ?string $routePrefix,
                 string $resourceClass,
                 array $resourceTargets,
+                ?string $resourceUriTemplate = null,
             ): array {
                 $method = self::API_PLATFORM_OPERATIONS[$operationClass] ?? null;
 
@@ -2865,6 +2873,9 @@ final class ProjectAstAnalyzer
                 if ($targets === []) {
                     return [];
                 }
+
+                // API Platform copies every resource property the operation leaves null.
+                $path ??= $resourceUriTemplate;
 
                 if ($path !== null) {
                     if ($routePrefix !== null) {
