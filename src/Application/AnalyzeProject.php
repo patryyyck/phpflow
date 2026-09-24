@@ -144,6 +144,7 @@ final readonly class AnalyzeProject
             $ast->controlBranches(),
             $ast->loopControls(),
             $symbolFiles,
+            $ast->doctrineEntities(),
         );
     }
 }

@@ -7,6 +7,7 @@ namespace PhpFlow\Ast;
 use PhpFlow\Domain\Analysis\MessageDispatch;
 use PhpFlow\Domain\Analysis\HttpCall;
 use PhpFlow\Domain\Analysis\DatabaseEffect;
+use PhpFlow\Domain\Analysis\DoctrineEntity;
 use PhpFlow\Domain\Analysis\ApplicationEffect;
 use PhpFlow\Domain\Analysis\ThrownException;
 use PhpFlow\Domain\Analysis\MethodReturn;
@@ -130,6 +131,14 @@ final class ProjectAstAnalyzer
             /** @var list<UnreachableRange> */
             public array $unreachableRanges = [];
 
+            /**
+             * Doctrine mapping read from each entity's own attributes, resolved
+             * into tables once every class is known.
+             *
+             * @var array<string, array{table: ?string, inheritance: ?string}>
+             */
+            private array $doctrineMappings = [];
+
             private ?string $className = null;
             private ?string $methodName = null;
 
@@ -176,6 +185,10 @@ final class ProjectAstAnalyzer
 
                     if ($node instanceof Node\Stmt\Class_) {
                         $this->indexStaticStringHelpers($node);
+
+                        if ($this->className !== null) {
+                            $this->collectDoctrineMapping($node->attrGroups, $this->className);
+                        }
                     }
 
                     $this->collectAttributes(
@@ -1347,6 +1360,131 @@ final class ProjectAstAnalyzer
                     $this->branchPath($throw),
                     $this->sourcePosition($throw),
                 );
+            }
+            /**
+             * Only a literal `name:` on `#[ORM\Table]` is read. Without one,
+             * Doctrine derives the name from the configured naming strategy.
+             *
+             * @param array<int, Node\AttributeGroup> $groups
+             */
+            private function collectDoctrineMapping(array $groups, string $className): void
+            {
+                $entity = false;
+                $table = null;
+                $inheritance = null;
+
+                foreach ($groups as $group) {
+                    foreach ($group->attrs as $attribute) {
+                        $name = $attribute->name->getAttribute('resolvedName')?->toString()
+                            ?? $attribute->name->toString();
+
+                        match ($name) {
+                            'Doctrine\\ORM\\Mapping\\Entity' => $entity = true,
+                            'Doctrine\\ORM\\Mapping\\Table' => $table = $this->literalAttributeArgument($attribute, 'name', 0),
+                            'Doctrine\\ORM\\Mapping\\InheritanceType' => $inheritance = $this->literalAttributeArgument($attribute, 'value', 0),
+                            default => null,
+                        };
+                    }
+                }
+
+                if ($entity) {
+                    $this->doctrineMappings[$className] = [
+                        'table' => $table,
+                        'inheritance' => $inheritance === null ? null : strtoupper($inheritance),
+                    ];
+                }
+            }
+
+            private function literalAttributeArgument(
+                Node\Attribute $attribute,
+                string $name,
+                int $position,
+            ): ?string {
+                foreach ($attribute->args as $index => $argument) {
+                    $matches = $argument->name === null
+                        ? $index === $position
+                        : $argument->name->toString() === $name;
+
+                    if ($matches) {
+                        return $argument->value instanceof String_ ? $argument->value->value : null;
+                    }
+                }
+
+                return null;
+            }
+
+            /**
+             * Under SINGLE_TABLE, Doctrine stores every entity of a hierarchy in
+             * the root table, so a subclass resolves to its parent entity's
+             * table. Any other inheritance type keeps one table per entity.
+             *
+             * @return list<DoctrineEntity>
+             */
+            public function doctrineEntities(): array
+            {
+                $entities = [];
+
+                foreach (array_keys($this->doctrineMappings) as $class) {
+                    $entities[] = new DoctrineEntity($class, $this->doctrineTable($class));
+                }
+
+                return $entities;
+            }
+
+            /** @param array<string, true> $visited */
+            private function doctrineTable(string $class, array $visited = []): ?string
+            {
+                if (isset($visited[$class])) {
+                    return null;
+                }
+
+                $visited[$class] = true;
+                $parent = $this->parentDoctrineEntity($class);
+
+                if ($parent !== null && $this->doctrineInheritance($parent) === 'SINGLE_TABLE') {
+                    return $this->doctrineTable($parent, $visited);
+                }
+
+                return $this->doctrineMappings[$class]['table'];
+            }
+
+            /**
+             * The inheritance type is declared on the root entity and applies to
+             * the whole hierarchy below it.
+             *
+             * @param array<string, true> $visited
+             */
+            private function doctrineInheritance(string $class, array $visited = []): ?string
+            {
+                if (isset($visited[$class])) {
+                    return null;
+                }
+
+                $visited[$class] = true;
+                $parent = $this->parentDoctrineEntity($class);
+
+                if ($parent !== null) {
+                    return $this->doctrineInheritance($parent, $visited);
+                }
+
+                return $this->doctrineMappings[$class]['inheritance'];
+            }
+
+            private function parentDoctrineEntity(string $class): ?string
+            {
+                $visited = [];
+                $parent = $this->projectIndex->parentOf($class);
+
+                while ($parent !== null && !isset($visited[$parent])) {
+                    if (isset($this->doctrineMappings[$parent])) {
+                        return $parent;
+                    }
+
+                    $visited[$parent] = true;
+                    $parent = $this->projectIndex->parentOf($parent);
+                }
+
+                return null;
             }
 
             /**
@@ -3062,6 +3200,7 @@ final class ProjectAstAnalyzer
             $collector->guardClauses,
             $collector->controlBranches,
             $collector->reachableItems($collector->loopControls),
+            doctrineEntities: $collector->doctrineEntities(),
         );
     }
 }

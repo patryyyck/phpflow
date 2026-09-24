@@ -111,6 +111,8 @@ over guessing.
 | SQL operation classification | **Supported** | SELECT, INSERT, UPDATE and DELETE are represented. |
 | Table extraction | **Partial** | Static/simple SQL and QueryBuilder targets are recovered; highly dynamic SQL may remain unknown. |
 | Schema-qualified/quoted identifiers | **Supported** | Impact matching handles the supported schema/quoted identifier forms. |
+| ORM entity to table mapping | **Partial** | `#[ORM\Entity]` classes are mapped to the literal `name:` of their `#[ORM\Table]`. Under `SINGLE_TABLE` inheritance, subclasses resolve to the root table; any other inheritance type keeps one table per entity. |
+| Naming-strategy table names | **Not supported** | An entity without a literal `#[ORM\Table(name:)]` gets its name from the configured naming strategy, which is not read, so its table stays unresolved. |
 | ORM runtime/unit-of-work behavior | **Not supported** | PHPFlow does not boot Doctrine or infer runtime persistence events beyond recognized static calls. |
 | Database contents/schema introspection | **Not supported** | No database connection is made. |
 
