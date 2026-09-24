@@ -7,6 +7,7 @@ namespace PhpFlow\Ast;
 use PhpFlow\Domain\Analysis\MessageDispatch;
 use PhpFlow\Domain\Analysis\HttpCall;
 use PhpFlow\Domain\Analysis\DatabaseEffect;
+use PhpFlow\Domain\Analysis\ApiPlatformCoverage;
 use PhpFlow\Domain\Analysis\ApplicationEffect;
 use PhpFlow\Domain\Analysis\ThrownException;
 use PhpFlow\Domain\Analysis\MethodReturn;
@@ -78,6 +79,11 @@ final class ProjectAstAnalyzer
             public int $interfaces = 0;
             public int $traits = 0;
             public int $enums = 0;
+            public int $apiPlatformResources = 0;
+            public int $apiPlatformOperations = 0;
+            public int $apiPlatformOperationsWithTarget = 0;
+            public int $apiPlatformUnrecognizedOperations = 0;
+            public int $apiPlatformResourcesWithoutOperations = 0;
 
             /** @var list<PhpAttribute> */
             public array $attributes = [];
@@ -2641,6 +2647,10 @@ final class ProjectAstAnalyzer
                     ? $this->apiPlatformResourceDefaults($groups)
                     : [];
 
+                if ($methodName === null && $className !== null) {
+                    $this->apiPlatformResources += $this->apiPlatformResourceCount($groups);
+                }
+
                 foreach ($groups as $group) {
                     foreach ($group->attrs as $attribute) {
                         $name = $attribute->name->getAttribute('resolvedName')?->toString()
@@ -2734,13 +2744,20 @@ final class ProjectAstAnalyzer
                 array $resourceTargets,
             ): array {
                 if (isset(self::API_PLATFORM_OPERATIONS[$name])) {
-                    return $this->apiPlatformOperationRoutes(
+                    return $this->countedApiPlatformOperationRoutes(
                         $name,
                         $attribute->args,
                         null,
                         $resourceClass,
                         $resourceTargets,
                     );
+                }
+
+                if ($this->isApplicationApiPlatformOperation($name)) {
+                    ++$this->apiPlatformOperations;
+                    ++$this->apiPlatformUnrecognizedOperations;
+
+                    return [];
                 }
 
                 if ($name !== 'ApiPlatform\\Metadata\\ApiResource') {
@@ -2764,6 +2781,8 @@ final class ProjectAstAnalyzer
                 }
 
                 if ($operations === null) {
+                    ++$this->apiPlatformResourcesWithoutOperations;
+
                     return [];
                 }
 
@@ -2778,11 +2797,14 @@ final class ProjectAstAnalyzer
 
                     $operationClass = $this->expressionType($operation);
 
-                    if ($operationClass === null) {
+                    if ($operationClass === null || !isset(self::API_PLATFORM_OPERATIONS[$operationClass])) {
+                        ++$this->apiPlatformOperations;
+                        ++$this->apiPlatformUnrecognizedOperations;
+
                         continue;
                     }
 
-                    $operationRoutes = $this->apiPlatformOperationRoutes(
+                    $operationRoutes = $this->countedApiPlatformOperationRoutes(
                         $operationClass,
                         $operation->args,
                         $routePrefix,
@@ -2796,6 +2818,95 @@ final class ProjectAstAnalyzer
                 }
 
                 return $routes;
+            }
+
+            /**
+             * @param array<int, Node\Arg|Node\VariadicPlaceholder> $arguments
+             * @param array<string, string>                        $resourceTargets
+             *
+             * @return list<SymfonyRoute>
+             */
+            private function countedApiPlatformOperationRoutes(
+                string $operationClass,
+                array $arguments,
+                ?string $routePrefix,
+                string $resourceClass,
+                array $resourceTargets,
+            ): array {
+                $routes = $this->apiPlatformOperationRoutes(
+                    $operationClass,
+                    $arguments,
+                    $routePrefix,
+                    $resourceClass,
+                    $resourceTargets,
+                );
+
+                ++$this->apiPlatformOperations;
+
+                if ($routes !== []) {
+                    ++$this->apiPlatformOperationsWithTarget;
+                }
+
+                return $routes;
+            }
+
+            /**
+             * Each `#[ApiResource]` is a resource of its own; operation attributes
+             * without one make the class a single resource.
+             *
+             * @param array<int, Node\AttributeGroup> $groups
+             */
+            private function apiPlatformResourceCount(array $groups): int
+            {
+                $resources = 0;
+                $operations = false;
+
+                foreach ($groups as $group) {
+                    foreach ($group->attrs as $attribute) {
+                        $name = $attribute->name->getAttribute('resolvedName')?->toString()
+                            ?? $attribute->name->toString();
+
+                        if ($name === 'ApiPlatform\\Metadata\\ApiResource') {
+                            ++$resources;
+                        } elseif (isset(self::API_PLATFORM_OPERATIONS[$name]) || $this->isApplicationApiPlatformOperation($name)) {
+                            $operations = true;
+                        }
+                    }
+                }
+
+                return $resources > 0 ? $resources : (int) $operations;
+            }
+
+            /**
+             * An application class extending an API Platform metadata class is a
+             * custom operation, which is counted but not interpreted.
+             */
+            private function isApplicationApiPlatformOperation(string $class): bool
+            {
+                $visited = [];
+                $parent = $this->projectIndex->parentOf($class);
+
+                while ($parent !== null && !isset($visited[$parent])) {
+                    if (str_starts_with($parent, 'ApiPlatform\\Metadata\\')) {
+                        return true;
+                    }
+
+                    $visited[$parent] = true;
+                    $parent = $this->projectIndex->parentOf($parent);
+                }
+
+                return false;
+            }
+
+            public function apiPlatformCoverage(): ApiPlatformCoverage
+            {
+                return new ApiPlatformCoverage(
+                    $this->apiPlatformResources,
+                    $this->apiPlatformOperations,
+                    $this->apiPlatformOperationsWithTarget,
+                    $this->apiPlatformUnrecognizedOperations,
+                    $this->apiPlatformResourcesWithoutOperations,
+                );
             }
 
             /**
@@ -3062,6 +3173,7 @@ final class ProjectAstAnalyzer
             $collector->guardClauses,
             $collector->controlBranches,
             $collector->reachableItems($collector->loopControls),
+            apiPlatformCoverage: $collector->apiPlatformCoverage(),
         );
     }
 }

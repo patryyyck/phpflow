@@ -73,6 +73,29 @@ final class ScanCommand extends Command
             ['Graph edges' => (string) count($graph->edges())],
         );
 
+        $coverage = $analysis->apiPlatformCoverage();
+
+        if ($coverage->resources() > 0) {
+            $io->section('API Platform coverage');
+            $io->definitionList(
+                ['Resources' => (string) $coverage->resources()],
+                ['Operations' => (string) $coverage->operations()],
+                ['With a provable target' => (string) $coverage->operationsWithTarget()],
+                ['Without a provable target' => sprintf(
+                    '%d (not represented: framework defaults or unresolved targets)',
+                    $coverage->operationsWithoutTarget(),
+                )],
+                ['Unrecognized operation class' => sprintf(
+                    '%d (not represented)',
+                    $coverage->unrecognizedOperations(),
+                )],
+                ['Resources without operations argument' => sprintf(
+                    '%d (not represented: default operation set)',
+                    $coverage->resourcesWithoutOperations(),
+                )],
+            );
+        }
+
         if ($analysis->routes() !== []) {
             $io->section('Symfony routes');
             $rows = [];

@@ -164,10 +164,11 @@ final class ApiPlatformResourceDetectionTest extends TestCase
             ),
         );
 
-        // The fixture declares sixteen operations. The two relying on API Platform
-        // defaults for their target contribute nothing, and six name or inherit
-        // two targets at once, so eighteen entry points remain.
-        self::assertCount(18, $resourceRoutes);
+        // The fixture declares twenty operations. The three relying on API Platform
+        // defaults for their target and the two of an unrecognized operation class
+        // contribute nothing, and four name or inherit two targets at once, so
+        // nineteen entry points remain.
+        self::assertCount(19, $resourceRoutes);
     }
 
     /**
@@ -212,6 +213,20 @@ final class ApiPlatformResourceDetectionTest extends TestCase
         }
 
         return $entryPoints;
+    }
+
+    public function testItReportsWhatItCouldNotRepresent(): void
+    {
+        $coverage = (new ProjectAstAnalyzer())->analyze(
+            (new DirectoryScanner())->scan(__DIR__.'/../Fixtures/SimpleProject'),
+        )->apiPlatformCoverage();
+
+        self::assertSame(10, $coverage->resources());
+        self::assertSame(20, $coverage->operations());
+        self::assertSame(15, $coverage->operationsWithTarget());
+        self::assertSame(3, $coverage->operationsWithoutTarget());
+        self::assertSame(2, $coverage->unrecognizedOperations());
+        self::assertSame(1, $coverage->resourcesWithoutOperations());
     }
 
     /**
