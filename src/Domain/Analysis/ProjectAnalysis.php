@@ -50,6 +50,7 @@ final readonly class ProjectAnalysis
         private array $controlBranches = [],
         private array $loopControls = [],
         private array $symbolFiles = [],
+        private ApiPlatformCoverage $apiPlatformCoverage = new ApiPlatformCoverage(),
     ) {
     }
 
@@ -114,4 +115,6 @@ final readonly class ProjectAnalysis
 
     /** @return array<string, string> */
     public function symbolFiles(): array { return $this->symbolFiles; }
+
+    public function apiPlatformCoverage(): ApiPlatformCoverage { return $this->apiPlatformCoverage; }
 }

@@ -71,6 +71,7 @@ over guessing.
 | Default state providers/processors | **Not supported** | `ItemProvider`, `CollectionProvider`, `PersistProcessor` and `RemoveProcessor` live in `vendor/`, which application source discovery excludes, so operations relying on them have no provable target. |
 | Derived `uriTemplate` | **Not supported** | A path defaulted from the resource short name is not reconstructed, so an operation that declares none is reported without a path rather than with a guessed one. |
 | GraphQL operations | **Not supported** | Only HTTP operations are represented. |
+| Coverage report | **Supported** | `scan` counts the resources and operations it read, and reports those it could not represent: operations without a provable target, operations of an unrecognized operation class, and resources without an `operations:` argument. |
 
 ## Symfony service resolution
 

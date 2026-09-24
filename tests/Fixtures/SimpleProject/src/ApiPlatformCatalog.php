@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 
@@ -123,6 +124,45 @@ final class CatalogArchive
     uriTemplate: 'catalog-imports/replay',
 )]
 final class CatalogImport
+{
+}
+
+// An application subclass of HttpOperation is not a recognized operation
+// class: it is counted in the coverage report, not turned into an entry point.
+#[ApiResource(
+    operations: [
+        new CatalogStatisticsOperation(uriTemplate: 'catalogs/statistics'),
+    ],
+)]
+final class CatalogStatistics
+{
+}
+
+final class CatalogStatisticsOperation extends HttpOperation
+{
+}
+
+// The same custom operation declared on the class is counted as well.
+#[CatalogStatisticsOperation(uriTemplate: 'catalog-statistics/{id}')]
+final class CatalogStatisticsSnapshot
+{
+}
+
+// Each #[ApiResource] is a resource of its own, even on one class.
+#[ApiResource(
+    operations: [
+        new GetCollection(
+            uriTemplate: 'catalogs/{catalogId}/reviews',
+            provider: CatalogSummaryProvider::class,
+        ),
+    ],
+)]
+#[ApiResource(
+    operations: [
+        new Get(),
+    ],
+)]
+final class CatalogReview
 {
 }
 
