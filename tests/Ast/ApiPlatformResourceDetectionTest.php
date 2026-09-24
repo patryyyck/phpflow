@@ -154,6 +154,30 @@ final class ApiPlatformResourceDetectionTest extends TestCase
         );
     }
 
+    public function testAnOperationWithoutAUriTemplateUsesTheResourceOne(): void
+    {
+        self::assertSame(
+            ['GET' => ['App\\ApiPlatform\\CatalogSummaryProvider::provide']],
+            $this->entryPointsFor('/catalogs/{catalogId}/entries'),
+        );
+    }
+
+    public function testAnOperationUriTemplateWinsOverTheResourceOne(): void
+    {
+        self::assertSame(
+            ['POST' => ['App\\ApiPlatform\\ImportCatalogProcessor::process']],
+            $this->entryPointsFor('/catalogs/{catalogId}/entries/import'),
+        );
+    }
+
+    public function testEachResourceOfAClassAppliesItsOwnUriTemplateAndPrefix(): void
+    {
+        self::assertSame(
+            ['GET' => ['App\\ApiPlatform\\CatalogSummaryProvider::provide']],
+            $this->entryPointsFor('/internal/catalog-entries/{id}'),
+        );
+    }
+
     public function testItSkipsOperationsWithoutAProvableTarget(): void
     {
         $resourceRoutes = array_filter(
@@ -164,10 +188,10 @@ final class ApiPlatformResourceDetectionTest extends TestCase
             ),
         );
 
-        // The fixture declares sixteen operations. The two relying on API Platform
-        // defaults for their target contribute nothing, and six name or inherit
-        // two targets at once, so eighteen entry points remain.
-        self::assertCount(18, $resourceRoutes);
+        // The fixture declares nineteen operations. The two relying on API Platform
+        // defaults for their target contribute nothing, and four name or inherit
+        // two targets at once, so twenty-one entry points remain.
+        self::assertCount(21, $resourceRoutes);
     }
 
     /**

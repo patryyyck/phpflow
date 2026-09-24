@@ -80,6 +80,33 @@ final class CatalogDraft
 {
 }
 
+// A uriTemplate declared on the resource is the path of every operation of
+// that resource declaring none, as for subresources.
+#[ApiResource(
+    uriTemplate: 'catalogs/{catalogId}/entries',
+    operations: [
+        new GetCollection(
+            provider: CatalogSummaryProvider::class,
+        ),
+        new Post(
+            uriTemplate: 'catalogs/{catalogId}/entries/import',
+            processor: ImportCatalogProcessor::class,
+        ),
+    ],
+)]
+#[ApiResource(
+    routePrefix: '/internal',
+    uriTemplate: 'catalog-entries/{id}',
+    operations: [
+        new Get(
+            provider: CatalogSummaryProvider::class,
+        ),
+    ],
+)]
+final class CatalogEntry
+{
+}
+
 final readonly class ImportCatalogProcessor
 {
     public function process(): void
