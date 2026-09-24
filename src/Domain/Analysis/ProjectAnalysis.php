@@ -27,6 +27,7 @@ final readonly class ProjectAnalysis
      * @param list<ControlBranch> $controlBranches
      * @param list<LoopControl> $loopControls
      * @param array<string, string> $symbolFiles
+     * @param list<DoctrineEntity> $doctrineEntities
      */
     public function __construct(
         private ProjectStatistics $statistics,
@@ -50,6 +51,7 @@ final readonly class ProjectAnalysis
         private array $controlBranches = [],
         private array $loopControls = [],
         private array $symbolFiles = [],
+        private array $doctrineEntities = [],
     ) {
     }
 
@@ -114,4 +116,7 @@ final readonly class ProjectAnalysis
 
     /** @return array<string, string> */
     public function symbolFiles(): array { return $this->symbolFiles; }
+
+    /** @return list<DoctrineEntity> */
+    public function doctrineEntities(): array { return $this->doctrineEntities; }
 }
