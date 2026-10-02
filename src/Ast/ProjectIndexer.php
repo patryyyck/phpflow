@@ -26,7 +26,7 @@ final class ProjectIndexer
         $index = new ProjectIndex();
 
         foreach ($project->sourceFiles() as $sourceFile) {
-            $this->indexFile($sourceFile->path(), $index, $project->path());
+            $this->indexFile($sourceFile->path(), $index, $project->path(), false);
         }
 
         $locator = new VendorSymbolLocator($project->path());
@@ -47,7 +47,7 @@ final class ProjectIndexer
                     continue;
                 }
 
-                $this->indexFile($file, $index, $project->path());
+                $this->indexFile($file, $index, $project->path(), true);
                 $progress = true;
             }
 
@@ -59,7 +59,7 @@ final class ProjectIndexer
         return $index;
     }
 
-    private function indexFile(string $file, ProjectIndex $index, string $projectPath): void
+    private function indexFile(string $file, ProjectIndex $index, string $projectPath, bool $vendor): void
     {
         $ast = $this->resolvedAst($file);
         $finder = new NodeFinder();
@@ -75,6 +75,7 @@ final class ProjectIndexer
                 $class->extends?->toString(),
                 $file,
                 $this->isTestFile($file, $projectPath),
+                $vendor,
             );
 
             foreach ($class->implements as $interface) {
@@ -83,6 +84,13 @@ final class ProjectIndexer
 
             $this->indexTraitUses($name, $class->stmts, $index);
             $this->indexMethods($name, $class->getMethods(), $index);
+
+            $constructor = $class->getMethod('__construct');
+
+            // Only a constructor that can forward to a parent is ever followed.
+            if ($constructor !== null && $class->extends !== null) {
+                $index->addConstructor($name, $constructor);
+            }
         }
 
         foreach ($finder->findInstanceOf($ast, Node\Stmt\Interface_::class) as $interface) {

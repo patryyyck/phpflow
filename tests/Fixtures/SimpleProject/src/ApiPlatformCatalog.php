@@ -154,8 +154,9 @@ final class CatalogImport
 {
 }
 
-// An application subclass of HttpOperation is not a recognized operation
-// class: it is counted in the coverage report, not turned into an entry point.
+// An operation class whose constructor cannot be read as literals stays
+// unrecognized: it is counted in the coverage report, not turned into an
+// entry point. See ApiPlatformCustomOperations.php for the readable ones.
 #[ApiResource(
     operations: [
         new CatalogStatisticsOperation(uriTemplate: 'catalogs/statistics'),
@@ -167,6 +168,11 @@ final class CatalogStatistics
 
 final class CatalogStatisticsOperation extends HttpOperation
 {
+    public function __construct(?string $uriTemplate = null)
+    {
+        // Positional arguments would need the vendor constructor signature.
+        parent::__construct('GET', $uriTemplate);
+    }
 }
 
 // The same custom operation declared on the class is counted as well.

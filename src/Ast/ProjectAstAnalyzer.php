@@ -67,6 +67,8 @@ final class ProjectAstAnalyzer
                 'ApiPlatform\\Metadata\\Delete' => 'DELETE',
             ];
 
+            private const string API_PLATFORM_HTTP_OPERATION = 'ApiPlatform\\Metadata\\HttpOperation';
+
             /** @var array<string, string> */
             private const array API_PLATFORM_TARGET_METHODS = [
                 'provider' => 'provide',
@@ -2892,10 +2894,13 @@ final class ProjectAstAnalyzer
                 }
 
                 if ($this->isApplicationApiPlatformOperation($name)) {
-                    ++$this->apiPlatformOperations;
-                    ++$this->apiPlatformUnrecognizedOperations;
-
-                    return [];
+                    return $this->countedCustomApiPlatformOperationRoutes(
+                        $name,
+                        $attribute->args,
+                        null,
+                        $resourceClass,
+                        $resourceTargets,
+                    );
                 }
 
                 if ($name !== 'ApiPlatform\\Metadata\\ApiResource') {
@@ -2940,21 +2945,30 @@ final class ProjectAstAnalyzer
 
                     $operationClass = $this->expressionType($operation);
 
-                    if ($operationClass === null || !isset(self::API_PLATFORM_OPERATIONS[$operationClass])) {
+                    if ($operationClass === null) {
                         ++$this->apiPlatformOperations;
                         ++$this->apiPlatformUnrecognizedOperations;
 
                         continue;
                     }
 
-                    $operationRoutes = $this->countedApiPlatformOperationRoutes(
-                        $operationClass,
-                        $operation->args,
-                        $routePrefix,
-                        $resourceClass,
-                        $declaredTargets,
-                        $uriTemplate,
-                    );
+                    $operationRoutes = isset(self::API_PLATFORM_OPERATIONS[$operationClass])
+                        ? $this->countedApiPlatformOperationRoutes(
+                            $operationClass,
+                            $operation->args,
+                            $routePrefix,
+                            $resourceClass,
+                            $declaredTargets,
+                            $uriTemplate,
+                        )
+                        : $this->countedCustomApiPlatformOperationRoutes(
+                            $operationClass,
+                            $operation->args,
+                            $routePrefix,
+                            $resourceClass,
+                            $declaredTargets,
+                            $uriTemplate,
+                        );
 
                     foreach ($operationRoutes as $route) {
                         $routes[] = $route;
@@ -3044,6 +3058,124 @@ final class ProjectAstAnalyzer
                 return false;
             }
 
+            /**
+             * An application subclass of `HttpOperation` sets its values in its own
+             * constructor chain, which is read from source. When any value that
+             * decides the entry point cannot be read, the operation stays
+             * unrecognized rather than guessed.
+             *
+             * @param array<int, Node\Arg|Node\VariadicPlaceholder> $arguments
+             * @param array<string, string>                        $resourceTargets
+             *
+             * @return list<SymfonyRoute>
+             */
+            private function countedCustomApiPlatformOperationRoutes(
+                string $operationClass,
+                array $arguments,
+                ?string $routePrefix,
+                string $resourceClass,
+                array $resourceTargets,
+                ?string $resourceUriTemplate = null,
+            ): array {
+                ++$this->apiPlatformOperations;
+
+                $resolved = (new ConstructorArgumentResolver($this->projectIndex))->resolve(
+                    $operationClass,
+                    $arguments,
+                    self::API_PLATFORM_HTTP_OPERATION,
+                );
+
+                $inputs = $resolved === null ? null : $this->customOperationInputs($resolved);
+
+                if ($inputs === null) {
+                    ++$this->apiPlatformUnrecognizedOperations;
+
+                    return [];
+                }
+
+                $routes = $this->apiPlatformRoutesFromInputs(
+                    $operationClass,
+                    $inputs['method'],
+                    $inputs['path'],
+                    $inputs['name'],
+                    $inputs['read'],
+                    $inputs['write'],
+                    $inputs['targets'],
+                    $routePrefix,
+                    $resourceClass,
+                    $resourceTargets,
+                    $resourceUriTemplate,
+                );
+
+                if ($routes !== []) {
+                    ++$this->apiPlatformOperationsWithTarget;
+                }
+
+                return $routes;
+            }
+
+            /**
+             * `method`, `read` and `write` decide whether an inherited target
+             * applies, so an operation setting one of them to something unreadable
+             * cannot be interpreted. An unreadable `uriTemplate`, `name` or target
+             * is ignored, as it is on a built-in operation.
+             *
+             * @return ?array{method: string, path: ?string, name: ?string, read: ?bool, write: ?bool, targets: array<string, string>}
+             */
+            private function customOperationInputs(ResolvedArguments $resolved): ?array
+            {
+                $method = 'GET';
+
+                if ($resolved->isPassed('method')) {
+                    $value = $resolved->value('method');
+
+                    if (!is_string($value) || $value === '') {
+                        return null;
+                    }
+
+                    $method = strtoupper($value);
+                }
+
+                $flags = [];
+
+                foreach (['read', 'write'] as $flag) {
+                    $flags[$flag] = null;
+
+                    if (!$resolved->isPassed($flag)) {
+                        continue;
+                    }
+
+                    $value = $resolved->value($flag);
+
+                    if ($resolved->isResolved($flag) && is_bool($value)) {
+                        $flags[$flag] = $value;
+                    } elseif (!$resolved->isResolved($flag) || $value !== null) {
+                        return null;
+                    }
+                }
+
+                $path = $resolved->value('uriTemplate');
+                $name = $resolved->value('name');
+                $targets = [];
+
+                foreach (array_keys(self::API_PLATFORM_TARGET_METHODS) as $kind) {
+                    $target = $resolved->value($kind);
+
+                    if ($target instanceof ClassReference) {
+                        $targets[$kind] = $target->name;
+                    }
+                }
+
+                return [
+                    'method' => $method,
+                    'path' => is_string($path) ? $path : null,
+                    'name' => is_string($name) ? $name : null,
+                    'read' => $flags['read'],
+                    'write' => $flags['write'],
+                    'targets' => $targets,
+                ];
+            }
+
             public function apiPlatformCoverage(): ApiPlatformCoverage
             {
                 return new ApiPlatformCoverage(
@@ -3111,8 +3243,43 @@ final class ProjectAstAnalyzer
                     }
                 }
 
-                $targets = $this->apiPlatformTargets($arguments);
+                return $this->apiPlatformRoutesFromInputs(
+                    $operationClass,
+                    $method,
+                    $path,
+                    $name,
+                    $read,
+                    $write,
+                    $this->apiPlatformTargets($arguments),
+                    $routePrefix,
+                    $resourceClass,
+                    $resourceTargets,
+                    $resourceUriTemplate,
+                );
+            }
 
+            /**
+             * The inputs are the same whether they are read from the call site of a
+             * built-in operation or resolved from a custom operation class.
+             *
+             * @param array<string, string> $targets
+             * @param array<string, string> $resourceTargets
+             *
+             * @return list<SymfonyRoute>
+             */
+            private function apiPlatformRoutesFromInputs(
+                string $operationClass,
+                string $method,
+                ?string $path,
+                ?string $name,
+                ?bool $read,
+                ?bool $write,
+                array $targets,
+                ?string $routePrefix,
+                string $resourceClass,
+                array $resourceTargets,
+                ?string $resourceUriTemplate,
+            ): array {
                 foreach ($resourceTargets as $kind => $target) {
                     if (isset($targets[$kind]) || !$this->inheritsApiPlatformTarget($kind, $method, $read, $write)) {
                         continue;
