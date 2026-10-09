@@ -188,11 +188,11 @@ final class ApiPlatformResourceDetectionTest extends TestCase
             ),
         );
 
-        // The fixture declares twenty-three operations. The three relying on API
-        // Platform defaults for their target and the two of an unrecognized
-        // operation class contribute nothing, and four name or inherit two targets
-        // at once, so twenty-two entry points remain.
-        self::assertCount(22, $resourceRoutes);
+        // The fixture declares thirty-six operations. The seven without a provable
+        // target and the five of an unrecognized operation class contribute
+        // nothing, and four name or inherit two targets at once, so twenty-eight
+        // entry points remain.
+        self::assertCount(28, $resourceRoutes);
     }
 
     /**
@@ -239,17 +239,72 @@ final class ApiPlatformResourceDetectionTest extends TestCase
         return $entryPoints;
     }
 
+    public function testItResolvesAProviderSetByTheOperationClass(): void
+    {
+        self::assertSame(
+            ['GET' => ['App\\ApiPlatform\\Operation\\ExportProvider::provide']],
+            $this->entryPointsFor('/custom/catalogs/{id}/export'),
+        );
+    }
+
+    public function testACallSiteArgumentWinsOverTheClassFallback(): void
+    {
+        self::assertSame(
+            ['GET' => ['App\\ApiPlatform\\Operation\\LegacyExportProvider::provide']],
+            $this->entryPointsFor('/custom/catalogs/{id}/export-legacy'),
+        );
+    }
+
+    public function testItResolvesACustomOperationDeclaredOnTheClass(): void
+    {
+        self::assertSame(
+            ['GET' => ['App\\ApiPlatform\\Operation\\ExportProvider::provide']],
+            $this->entryPointsFor('/custom/catalog-exports/{id}/download'),
+        );
+    }
+
+    public function testItWalksAnApplicationInheritanceChain(): void
+    {
+        self::assertSame(
+            ['POST' => ['App\\ApiPlatform\\ImportCatalogProcessor::process']],
+            $this->entryPointsFor('/custom/catalogs/replay'),
+        );
+    }
+
+    public function testItForwardsAParameterDefaultAndALiteralMethod(): void
+    {
+        self::assertSame(
+            ['PUT' => ['App\\ApiPlatform\\ImportCatalogProcessor::process']],
+            $this->entryPointsFor('/custom/catalogs/rebuild'),
+        );
+    }
+
+    public function testTheResolvedMethodDecidesWhichResourceTargetIsInherited(): void
+    {
+        self::assertSame(
+            ['POST' => ['App\\ApiPlatform\\ImportCatalogProcessor::process']],
+            $this->entryPointsFor('/custom/catalogs/replay-default'),
+        );
+    }
+
+    public function testItLeavesUnreadableCustomOperationsUnrepresented(): void
+    {
+        foreach (['positional', 'computed-method', 'computed-provider', 'string-target', 'reassigned-provider', 'overwritten-provider'] as $suffix) {
+            self::assertSame([], $this->entryPointsFor('/custom/catalogs/'.$suffix));
+        }
+    }
+
     public function testItReportsWhatItCouldNotRepresent(): void
     {
         $coverage = (new ProjectAstAnalyzer())->analyze(
             (new DirectoryScanner())->scan(__DIR__.'/../Fixtures/SimpleProject'),
         )->apiPlatformCoverage();
 
-        self::assertSame(12, $coverage->resources());
-        self::assertSame(23, $coverage->operations());
-        self::assertSame(18, $coverage->operationsWithTarget());
-        self::assertSame(3, $coverage->operationsWithoutTarget());
-        self::assertSame(2, $coverage->unrecognizedOperations());
+        self::assertSame(19, $coverage->resources());
+        self::assertSame(36, $coverage->operations());
+        self::assertSame(24, $coverage->operationsWithTarget());
+        self::assertSame(7, $coverage->operationsWithoutTarget());
+        self::assertSame(5, $coverage->unrecognizedOperations());
         self::assertSame(1, $coverage->resourcesWithoutOperations());
     }
 

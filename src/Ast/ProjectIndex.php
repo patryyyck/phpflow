@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace PhpFlow\Ast;
 
+use PhpParser\Node;
+
 final class ProjectIndex
 {
     /** @var array<string, string|null> */
@@ -21,17 +23,24 @@ final class ProjectIndex
     /** @var array<string, array<string, MethodDefinition>> */
     private array $methods = [];
 
+    /** @var array<string, Node\Stmt\ClassMethod> */
+    private array $constructors = [];
+
     /** @var array<string, string> */
     private array $symbolFiles = [];
 
     /** @var array<string, true> */
     private array $testSymbols = [];
 
+    /** @var array<string, true> */
+    private array $vendorSymbols = [];
+
     public function addClass(
         string $class,
         ?string $parent,
         ?string $file = null,
         bool $testSymbol = false,
+        bool $vendorSymbol = false,
     ): void {
         $this->parents[$class] = $parent;
 
@@ -41,6 +50,10 @@ final class ProjectIndex
 
         if ($testSymbol) {
             $this->testSymbols[$class] = true;
+        }
+
+        if ($vendorSymbol) {
+            $this->vendorSymbols[$class] = true;
         }
     }
 
@@ -148,6 +161,12 @@ final class ProjectIndex
         return isset($this->testSymbols[$symbol]);
     }
 
+    /** Whether the class was only indexed to follow `extends`, from `vendor/`. */
+    public function isVendorSymbol(string $symbol): bool
+    {
+        return isset($this->vendorSymbols[$symbol]);
+    }
+
     /** @return array<string, string> */
     public function symbolFiles(): array
     {
@@ -208,6 +227,16 @@ final class ProjectIndex
     public function addMethod(string $owner, MethodDefinition $method): void
     {
         $this->methods[$owner][$method->name()] = $method;
+    }
+
+    public function addConstructor(string $owner, Node\Stmt\ClassMethod $constructor): void
+    {
+        $this->constructors[$owner] = $constructor;
+    }
+
+    public function constructorOf(string $class): ?Node\Stmt\ClassMethod
+    {
+        return $this->constructors[$class] ?? null;
     }
 
     public function resolveMethod(string $class, string $method): ?MethodDefinition
